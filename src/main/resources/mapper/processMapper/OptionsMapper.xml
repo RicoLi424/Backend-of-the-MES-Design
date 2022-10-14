@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.process.Mapper.OptionsMapper">
+<!--    获得所有的可选品牌的名称-->
+    <select id="getBrands" resultType="java.lang.String">
+        SELECT brand_name
+        FROM brand
+    </select>
+
+    <select id="getSeasons" resultType="java.lang.String">
+        SELECT season_name
+        FROM season
+    </select>
+
+    <select id="getTypes" resultType="java.lang.String">
+        SELECT type_name
+        FROM product_type
+    </select>
+
+    <select id="getStyleByBrand" resultType="java.lang.String" parameterType="java.lang.String">
+        SELECT distinct p.style
+        FROM product p
+        WHERE brand=#{brand} AND is_deleted='0'
+    </select>
+
+    <select id="getColorByBrandStyle" resultType="java.lang.String" parameterType="java.lang.String">
+        SELECT distinct color
+        FROM product p
+        WHERE brand=#{brand} AND p.style=#{style} AND is_deleted='0'
+    </select>
+<!--    获得所有的可选颜色的名称-->
+    <select id="getColors" resultType="java.lang.String">
+        SELECT color_name
+        FROM color
+    </select>
+<!--    获得所有的可选型号的名称-->
+    <select id="getSizes" resultType="java.lang.String">
+        SELECT size_name
+        FROM size
+    </select>
+<!--    获得所有可选工序的名称-->
+    <select id="getProcedures" resultType="java.lang.String">
+        SELECT p.name
+        FROM working_procedure p
+        WHERE is_deleted='0'
+    </select>
+    <!--    获得所有可选工序的名称-->
+    <select id="getProceduresByCompany" resultType="java.lang.String">
+        SELECT p.name
+        FROM working_procedure p
+        WHERE is_deleted='0' and company_id=#{company_id}
+    </select>
+<!--    获得所有可选物料的名称-->
+    <select id="getMaterials" resultType="java.lang.String">
+        SELECT distinct m.name
+        FROM material m
+        WHERE is_deleted='0'
+    </select>
+
+    <select id="getMaterialsByCompany" resultType="java.lang.String">
+        SELECT distinct m.name
+        FROM material m
+        WHERE is_deleted='0' and company_id=#{company_id}
+    </select>
+<!--    根据选择的物料名称获得可选的型号名称-->
+    <select id="getSizeByName" resultType="java.lang.String">
+        SELECT distinct m.size
+        FROM material m
+        WHERE m.name=#{name} AND is_deleted='0'
+    </select>
+<!--    根据选择的物料名称，型号获得可选颜色-->
+    <select id="getColorByNameSize" resultType="java.lang.String">
+        SELECT distinct color
+        FROM material m
+        WHERE m.name=#{name} and m.size=#{size} AND is_deleted='0'
+    </select>
+
+    <select id="getProductByCompanyID" resultType="java.lang.String" parameterType="java.lang.String">
+        SELECT concat(brand,',',season,',',p.type,',',color)
+        FROM product p
+        WHERE company=#{company} AND is_deleted='0'
+
+    </select>
+    
+    <select id="getCompanyIDs" resultType="java.lang.String" parameterType="java.lang.String">
+        SELECT distinct company
+        FROM product
+        WHERE is_deleted='0'
+    </select>
+
+</mapper>

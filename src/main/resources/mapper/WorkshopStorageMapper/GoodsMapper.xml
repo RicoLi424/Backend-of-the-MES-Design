@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.WorkshopStorage.mapper.GoodsMapper">
+    <select id="getGoodsNumById" resultType="java.lang.Integer">
+        select sum(quantity) from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and storage_id=#{storage_id} and shelf_id=#{shelf_id} and is_deleted="0" and (verify="normal" or verify="delete")
+    </select>
+
+    <select id="getByShelfId" resultType="com.example.mes.WorkshopStorage.vo.GoodsVo">
+        select * from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and storage_id=#{storage_id} and shelf_id=#{shelf_id} and is_deleted="0" and (verify="normal" or verify="delete")
+    </select>
+
+    <select id="getById" resultType="com.example.mes.WorkshopStorage.vo.GoodsVo">
+        select * from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and storage_id=#{storage_id} and shelf_id=#{shelf_id} and id=#{id} and is_deleted="0" and (verify="normal" or verify="delete")
+    </select>
+
+    <insert id="insert" parameterType="com.example.mes.WorkshopStorage.vo.GoodsVo">
+        insert into storage_goods values(#{uuid}, #{id}, #{storage_id},#{shelf_id},#{goods_id},#{goods_name},#{quantity},#{verify},#{types},#{status},#{is_deleted},#{created_time},#{created_by},#{modified_time},#{modified_by},#{company_id})
+    </insert>
+
+    <update id="updateQuantity">
+        update storage_goods set quantity=#{quantity} where (company_id = #{company_id} or #{company_id} = 0) and storage_id=#{storage_id} and shelf_id=#{shelf_id} and id=#{id} and is_deleted="0" and (verify="normal" or verify="delete")
+    </update>
+
+    <select id="getApplyByShelf" resultType="com.example.mes.WorkshopStorage.vo.GoodsVo">
+        select id,types,goods_id,quantity from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and storage_id=#{storage_id} and shelf_id=#{shelf_id} and is_deleted="0" and verify!="normal" order by uuid
+    </select>
+
+    <update id="delete">
+        update storage_goods set is_deleted="1",modified_time=#{modified_time} where (company_id = #{company_id} or #{company_id} = 0) and storage_id=#{storage_id} and shelf_id=#{shelf_id} and id=#{id} and verify="normal" and is_deleted="0"
+    </update>
+
+    <select id="getMaterial" resultType="java.lang.String">
+        select name from material where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and material_id=#{id}
+    </select>
+
+    <select id="getEquipment" resultType="java.lang.String">
+        select name from equipment where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and equipment_id=#{id}
+    </select>
+
+    <insert id="addApply" parameterType="com.example.mes.WorkshopStorage.vo.ApplyVo">
+        insert into storage_apply(uuid,workshop_id,storage_id,shelf_id,location,goods_id,goods_name,types,quantity,permit,status,is_deleted,created_time,created_by,modified_time,modified_by,in_out, company_id)
+        values(#{uuid}, #{workshop_id},#{storage_id},#{shelf_id},#{location}, #{goods_id},#{goods_name}, #{types},#{quantity},#{permit}, #{status},#{is_deleted},#{created_time},#{created_by},#{modified_time},#{modified_by},#{in_out},#{company_id})
+    </insert>
+
+    <select id="getApplyCount" resultType="java.lang.Integer">
+        select count(*) from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and permit="0"
+    </select>
+
+    <select id="getApplyCount_search" resultType="java.lang.Integer">
+        select count(*) from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and permit="0" and (goods_id = #{goods_id} or #{goods_id}='')and (goods_name = #{goods_name} or #{goods_name}='') and ((DATE(created_time) between #{time1} and #{time2}) or (#{time1}='2022-01-01' and #{time2}='2022-01-01')) and (types = #{type} or #{type}='')
+    </select>
+
+    <select id="getsetApplyCount" resultType="java.lang.Integer">
+        select count(*) from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and permit="1"
+    </select>
+
+    <select id="getConfirmCount" resultType="java.lang.Integer">
+        select count(*) from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and permit="2"
+    </select>
+
+    <select id="getMessageCount" resultType="java.lang.Integer">
+        select count(*) from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and permit="3"
+    </select>
+
+    <select id="getAddCount" resultType="java.lang.Integer">
+        select count(*) from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and permit="100"
+    </select>
+    <select id="getGoodsCount" resultType="java.lang.Integer">
+        select count(*) from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and verify="normal" and storage_id=#{storage_id} and shelf_id=#{shelf_id}
+    </select>
+    <select id="getLocationCount" resultType="java.lang.Integer">
+        select count(*) from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and verify="normal" and types=#{type} and goods_id=#{id}
+    </select>
+
+    <select id="selectAll"  resultType="com.example.mes.WorkshopStorage.vo.ApplyVo">
+        With g1 as(select sum(quantity) as quantity_sum, goods_id,types from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" GROUP BY goods_id,types) select a.uuid,a.workshop_id,a.goods_id,a.goods_name,a.quantity,a.created_time,a.created_by,a.types, a.in_out, g.quantity_sum from g1 g RIGHT OUTER JOIN storage_apply a ON g.goods_id = a.goods_id and g.types = a.types where (a.company_id = #{company_id} or #{company_id} = 0) and a.is_deleted="0" and a.permit="0" order by a.created_time desc limit #{start},#{num}
+    </select>
+
+    <select id="selectAll_search"  resultType="com.example.mes.WorkshopStorage.vo.ApplyVo">
+        With g1 as(select sum(quantity) as quantity_sum, goods_id,types from storage_goods where is_deleted="0" GROUP BY goods_id,types) select a.uuid,a.workshop_id,a.goods_id,a.goods_name,a.quantity,a.created_time,a.created_by,a.types, a.in_out, g.quantity_sum from g1 g RIGHT OUTER JOIN storage_apply a ON g.goods_id = a.goods_id and g.types = a.types where (a.company_id = #{company_id} or #{company_id} = 0) and a.is_deleted="0" and a.permit="0" and (a.goods_id = #{goods_id} or #{goods_id}='')and ( a.goods_name = #{goods_name} or #{goods_name}='') and ((DATE(a.created_time) between #{time1} and #{time2}) or (#{time1}='2022-01-01' and #{time2}='2022-01-01')) and (a.types = #{type} or #{type}='') order by a.created_time desc limit #{start},#{num}
+    </select>
+
+    <insert id="managerConfirm_in">
+        insert into storage_goods select #{uuid1}, #{random}, storage_id, shelf_id, goods_id, goods_name, quantity, 'normal', types, '0', '0', created_time, created_by, modified_time, modified_by, company_id
+        from storage_apply where uuid=#{uuid}
+    </insert>
+
+    <select id="selectsetAll"  resultType="com.example.mes.WorkshopStorage.vo.ApplyVo">
+        select uuid,workshop_id,goods_id,goods_name,quantity,created_time,created_by,modified_by,types,in_out from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and permit="1" order by workshop_id limit #{start},#{num}
+    </select>
+
+    <select id="selectConfirmAll"  resultType="com.example.mes.WorkshopStorage.vo.ApplyVo">
+        select uuid,workshop_id,goods_id,goods_name,quantity,created_time,created_by,modified_by,types from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and permit="2" order by workshop_id limit #{start},#{num}
+    </select>
+
+    <select id="selectMessageAll"  resultType="com.example.mes.WorkshopStorage.vo.ApplyVo">
+        select uuid,workshop_id,goods_id,goods_name,quantity,created_time,created_by,modified_by,types from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and permit="3" order by workshop_id limit #{start},#{num}
+    </select>
+
+    <select id="selectGoodsAll"  resultType="com.example.mes.WorkshopStorage.vo.GoodsVo">
+        select storage_id,shelf_id,goods_id,id,quantity,types,goods_name from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and storage_id=#{storage_id} and shelf_id=#{shelf_id} order by uuid limit #{start},#{num}
+    </select>
+
+    <select id="search_out"  resultType="com.example.mes.WorkshopStorage.vo.GoodsVo">
+        select sg.uuid, sg.storage_id,sg.shelf_id,sg.goods_id,sg.id,sg.quantity,sg.types,sg.goods_name from storage_goods sg, storage_apply sa where (sg.company_id = #{company_id} or #{company_id} = 0) and sg.goods_id=sa.goods_id and sg.goods_name=sa.goods_name and sa.uuid=#{uuid}
+    </select>
+    <select id="selectLocationAll"  resultType="com.example.mes.WorkshopStorage.vo.GoodsVo">
+        select storage_id,shelf_id,id,quantity from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and types=#{type} and goods_id=#{id} order by uuid limit #{start},#{num}
+    </select>
+    <select id="search_quantity" resultType="java.lang.Integer">
+        select quantity from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and uuid=#{uuid}
+    </select>
+
+    <select id="selectAddAll"  resultType="com.example.mes.WorkshopStorage.vo.ApplyVo">
+        select uuid,storage_id,shelf_id,location,goods_id,goods_name,quantity,created_time,created_by,modified_by,types,in_out from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and permit="100" order by workshop_id limit #{start},#{num}
+    </select>
+
+    <select id="searchQuantity"  resultType="java.lang.Integer">
+        select sum(quantity) from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and goods_id=#{goods_id} and types=#{types}
+    </select>
+
+    <update id="setApply">
+        update storage_apply set permit="1",modified_time=#{timestamp},modified_by=#{user} where (company_id = #{company_id} or #{company_id} = 0) and uuid=#{uuid}
+    </update>
+
+    <delete id="managerConfirm_out">
+        delete from storage_goods where (company_id = #{company_id} or #{company_id} = 0) and uuid=#{uuid}
+    </delete>
+
+    <update id="managerConfirm_out1">
+        update storage_goods set quantity=quantity-#{quantity} where (company_id = #{company_id} or #{company_id} = 0) and uuid=#{uuid}
+    </update>
+
+    <update id="managerConfirm">
+        update storage_apply set permit=#{message},modified_time=#{timestamp},modified_by=#{user} where (company_id = #{company_id} or #{company_id} = 0) and uuid=#{uuid}
+    </update>
+
+    <update id="managerConfirm1">
+        update storage_apply set permit=#{message} where (company_id = #{company_id} or #{company_id} = 0) and uuid=#{uuid}
+    </update>
+
+    <select id="getByUuid" resultType="com.example.mes.WorkshopStorage.vo.ApplyVo">
+        select uuid,workshop_id,storage_id,shelf_id,location,goods_id,goods_name,types,quantity,permit,status,is_deleted,created_time,created_by,modified_time,modified_by
+        from storage_apply where (company_id = #{company_id} or #{company_id} = 0) and uuid=#{uuid}
+    </select>
+
+    <update id="removeById">
+        update storage_goods set quantity=#{quantity},modified_time=#{modified_time},modified_by=#{user} where (company_id = #{company_id} or #{company_id} = 0) and storage_id=#{storage_id} and shelf_id=#{shelf_id} and id=#{id} and is_deleted="0"
+    </update>
+    <update id="checkDelete">
+        update storage_goods set is_deleted="1" where (company_id = #{company_id} or #{company_id} = 0) and quantity=0 and is_deleted="0"
+    </update>
+
+    <update id="removeApply">
+        update storage_apply set permit="3",modified_by=#{user},modified_time=#{timestamp} where (company_id = #{company_id} or #{company_id} = 0) and uuid=#{uuid}
+    </update>
+</mapper>

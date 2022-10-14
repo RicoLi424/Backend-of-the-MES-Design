@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.system.mapper.AccessMapper">
+    <select id="getPermission" resultType="string">
+        SELECT DISTINCT permission
+        FROM role AS b RIGHT JOIN user AS a
+        ON (b.role_name = a.role)
+        WHERE a.id = #{id}
+    </select>
+    <select id="getAccessNames" resultType="string">
+        SELECT DISTINCT access_name
+        from permission
+        WHERE permission_name = #{permission_name}
+        and is_deleted = 0
+    </select>
+    <select id="getAccessKeys">
+        select access_key
+        from access
+        WHERE access_name in
+        <foreach collection="access_names"
+                 open="(" close=")"
+                 item="item" separator=",">
+            #{item}
+        </foreach>
+    </select>
+</mapper>

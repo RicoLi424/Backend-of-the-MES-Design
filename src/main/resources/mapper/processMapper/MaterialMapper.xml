@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.process.Mapper.MaterialMapper">
+
+<!--    从物料表material中查询全部物料信息，id、name、size、color、comments、status-->
+    <select id="getMaterials" resultType="com.example.mes.process.Vo.MaterialVo.QueryMaterialVo">
+        SELECT m.material_id, m.name, m.size, m.color, m.comments,m.status,m.company_id
+        FROM material m
+        WHERE is_deleted='0' and (company_id = #{company_id} or #{company_id} = 0)
+        ORDER BY material_id ASC
+        LIMIT ${pageVo.startOffset}, ${pageVo.pageSize}
+    </select>
+    
+    <select id="check" resultType="java.lang.Integer" parameterType="java.lang.String">
+        SELECT count(*)
+        FROM material m
+        WHERE m.name=#{name} AND m.size=#{size} AND is_deleted='0'
+    </select>
+
+<!--    跟据物料id查询对应物料的信息-->
+    <select id="getMaterialByID" resultType="com.example.mes.process.Vo.MaterialVo.QueryMaterialVo" parameterType="java.lang.String">
+        SELECT m.material_id, m.name, m.size, m.color, m.comments,m.status,m.company_id
+        FROM material m
+        WHERE material_id=#{material_id} AND is_deleted='0' and (company_id = #{company_id} or #{company_id} = 0)
+    </select>
+
+    <select id="getMaterialByName" resultType="com.example.mes.process.Vo.MaterialVo.QueryMaterialVo" parameterType="java.lang.String">
+        SELECT m.material_id, m.name, m.size, m.color, m.comments,m.status,m.company_id
+        FROM material m
+        WHERE m.name=#{name} AND is_deleted='0'and (company_id = #{company_id} or #{company_id} = 0)
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM material
+        WHERE is_deleted='0'
+    </select>
+    <select id="getIndex" resultType="java.lang.Integer">
+        SELECT max(material_id)
+        FROM material
+        WHERE is_deleted='0'
+    </select>
+<!--    增加一个物料，is_deleted默认为'0'-->
+    <insert id="addMaterial" parameterType="com.example.mes.process.Vo.MaterialVo.InsertMaterialVo">
+        INSERT INTO material(material_id, material.name, material.size, color, comments,
+                             material.status, is_deleted, created_time, created_by, modified_time, modified_by,company_id)
+        VALUE(#{insertMaterialVo.material_id}, #{insertMaterialVo.name}, #{insertMaterialVo.size},
+            #{insertMaterialVo.color}, #{insertMaterialVo.comments}, #{insertMaterialVo.status}, '0',
+            #{insertMaterialVo.created_time}, #{insertMaterialVo.operator_id}, #{insertMaterialVo.created_time}, #{insertMaterialVo.operator_id},#{insertMaterialVo.company_id})
+    </insert>
+
+<!--    根据物料id删除一个物料-->
+    <update id="deleteMaterialByID" parameterType="com.example.mes.process.Vo.MaterialVo.DeleteMaterialVo">
+        UPDATE material
+        SET is_deleted='1', modified_time=#{deleteMaterialVo.modified_time}, modified_by=#{deleteMaterialVo.operator_id}
+        WHERE material_id=#{deleteMaterialVo.material_id} and (company_id = #{deleteMaterialVo.company_id} or #{deleteMaterialVo.company_id} = 0)
+    </update>
+
+<!--    修改一个物料，status与comments-->
+    <update id="updateMaterialByID" parameterType="com.example.mes.process.Vo.MaterialVo.UpdateMaterialVo">
+        UPDATE material
+        SET material.status=#{updateMaterialVo.status}, comments=#{updateMaterialVo.comments},
+            modified_time=#{updateMaterialVo.modified_time}, modified_by=#{updateMaterialVo.operator_id}
+        WHERE material_id=#{updateMaterialVo.material_id}and (company_id = #{updateMaterialVo.company_id} or #{updateMaterialVo.company_id} = 0)
+    </update>
+
+
+<!--        根据产品id，获得物料清单-->
+    <select id="getProMaterialListsByProID" resultType="com.example.mes.process.Vo.MaterialVo.QueryProMaterialVo">
+        SELECT p.material_id, p.count, m.name, m.size, m.color, m.comments
+        FROM pro_material_list p,material m
+        WHERE p.product_id=#{product_id} AND p.material_id=m.material_id
+    </select>
+
+<!--        增加物料清单-->
+    <insert id="addProMaterialLists" parameterType="java.util.ArrayList">
+        INSERT INTO pro_material_list
+        VALUES
+        <foreach collection="list" index="index" separator="," item="item">
+            (#{item.product_id}, #{item.material_id}, #{item.count})
+        </foreach>
+    </insert>
+
+<!--        删除物料跟产品的联系记录-->
+<!--        修改物料清单：先删除该清单，再重新插入-->
+    <delete id="deleteProMaterialLists">
+        DELETE FROM pro_material_list
+        WHERE product_id=#{product_id}
+    </delete>
+
+</mapper>

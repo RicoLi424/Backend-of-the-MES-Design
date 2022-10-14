@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.process.Mapper.NameIDMapper">
+    <select id="getProcedureIDByName" resultType="java.lang.String">
+        SELECT procedure_id
+        FROM working_procedure
+        WHERE working_procedure.name=#{name}
+    </select>
+
+    <select id="getMaterialIDByNameSizeColor" resultType="java.lang.String">
+        SELECT material_id
+        FROM material m
+        WHERE m.name=#{name} AND m.size=#{size} AND m.color=#{color}
+    </select>
+
+
+    <select id="getMaterialIDByNameSize" resultType="java.lang.String">
+        SELECT material_id
+        FROM material m
+        WHERE m.name=#{name} AND m.size like "%"#{size}"%"
+    </select>
+
+
+
+</mapper>

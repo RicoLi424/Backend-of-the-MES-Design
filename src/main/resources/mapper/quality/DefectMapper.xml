@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.mes.quality.mapper.DefectMapper">
+
+    <resultMap id="DefectBean" type="com.example.mes.quality.bean.DefectBean" >
+        <result column="defect_type" property="defectType"/>
+        <result column="defect_code" property="defectCode"/>
+        <result column="classification" property="classification"/>
+        <result column="status" property="status"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="modified_time" property="modifiedTime"/>
+        <result column="modified_by" property="modifiedBy"/>
+    </resultMap>
+
+    <select id="getInfo" parameterType="String" resultMap="DefectBean">
+        SELECT * FROM defect_list WHERE is_deleted = 0 and company_id = #{company_id}
+    </select>
+
+    <select id="getByDefectTypeOrCode" parameterType="String" resultMap="DefectBean">
+        SELECT * FROM defect_list WHERE (defect_type LIKE "%"#{keyword}"%" OR defect_code LIKE "%"#{keyword}"%") AND is_deleted=0 and company_id = #{company_id}
+    </select>
+
+    <select id="getByClassification" parameterType="String" resultMap="DefectBean">
+        SELECT * FROM defect_list WHERE classification = #{keyword} AND is_deleted=0 and company_id = #{company_id}
+    </select>
+
+    <select id="getTypeAndCode" parameterType="String" resultMap="DefectBean">
+        SELECT defect_type,defect_code FROM defect_list WHERE is_deleted=0 and company_id = #{company_id}
+    </select>
+
+    <delete id="deleteByCode" parameterType="String">
+            UPDATE defect_list set is_deleted=1 WHERE defect_code = #{defectCode} and company_id = #{company_id}
+    </delete>
+
+    <insert id="addDefect" parameterType="com.example.mes.quality.bean.DefectBean">
+        INSERT INTO defect_list(defect_type,defect_code,classification,status,is_deleted,
+        created_time,created_by,modified_time,modified_by,company_id)
+        VALUES
+        (#{defectType},#{defectCode},#{classification},#{status},#{isDeleted},
+        #{createdTime},#{createdBy},#{modifiedTime},#{modifiedBy},#{company_id})
+        ON DUPLICATE KEY UPDATE
+        defect_type=#{defectType},classification=#{classification},
+        modified_time=#{modifiedTime},modified_by=#{modifiedBy},company_id=#{company_id}
+    </insert>
+
+</mapper>

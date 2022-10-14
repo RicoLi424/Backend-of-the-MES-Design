@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.plan.dao.MaterialApplicationMapper">
+    
+    <!-- <sql id = "COLUMNS">
+    	id,
+    	no,material_id,expected_quantity,exported_quantity,
+    	export_finish_time,plan_id,
+    	
+    	status,is_deleted,created_time,created_by,modified_time,modified_by
+    </sql> -->
+    
+    <!-- <insert id="insert">
+    	insert into plan_material_application (<include refid="COLUMNS"></include>)
+    	values(#{id},#{no},#{materialId},#{expectedQuantity},0,
+    	#{exportFinishTime},#{plan.id},#{status},#{deleted},
+    	now(),#{createdBy},#{modifiedTime},#{modifiedBy})
+    </insert> -->
+    
+    <insert id = "insert">
+    	insert into storage_apply(uuid, workshop_id, goods_id, types, quantity, permit, is_deleted, goods_name,status,created_time,created_by,modified_time,modified_by,plan_id)
+    	values(#{id},#{plan.productionLine.workshopId},#{materialId},'material',#{expectedQuantity},'0','0',
+    	(select name from material where material_id=#{materialId}),'0',now(),#{createdBy},now(),#{createdBy},#{plan.id})
+    </insert>
+    
+    <resultMap type="com.example.mes.plan.entity.MaterialApplication" id="simple">
+    	<id column="uuid" property="id"/>
+    	<result column="goods_id" property="materialId"/>
+    	<result column="quantity" property="expectedQuantity"/>
+
+    	
+    	<result column="is_deleted" property="deleted"/>
+
+    	
+    </resultMap>
+    
+    <select id="selectByPlanId" resultMap="simple">
+    	select uuid, goods_id, quantity, is_deleted
+    	from storage_apply
+    	where plan_id = #{id}
+    </select>
+    
+    <!-- <select id="selectByPlanId" resultMap="simple">
+    	select <include refid="COLUMNS"></include>
+    	from plan_material_application
+    	where plan_id = #{id}
+    </select> -->
+    
+    <select id="selectMaterialIds" resultType="java.lang.String">
+    	select material_id
+    	from pro_material_list
+    	where product_id = #{productId}
+    </select>
+    
+    <select id="selectMaterialCount" resultType="java.lang.Integer">
+    	select count
+    	from pro_material_list
+    	where product_id = #{productId}
+    	and material_id = #{materialId}
+    </select>
+</mapper>

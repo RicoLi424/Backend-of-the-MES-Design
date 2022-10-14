@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.system.mapper.PermissionMapper">
+    <select id="findByName" resultType="string">
+        select SQL_CALC_FOUND_ROWS DISTINCT permission_name
+        from permission
+        where (permission_name like '%${permissionSelectVo.filter_permission_name}%' or
+        #{permissionSelectVo.filter_permission_name} = '')
+        and (company_id = #{permissionSelectVo.user.company_id})
+        and (is_deleted = '0')
+        order by ${permissionSelectVo.sort} ${permissionSelectVo.sortMethod}
+        limit #{numStart}, #{numEnd}
+    </select>
+    <select id="getLastCount" resultType="integer">
+        select count(distinct permission_name) from permission where company_id = #{company_id}
+    </select>
+    <select id="findAccessName" resultType="string">
+        select access_name
+        from permission
+        where permission_name = #{permission_name} and company_id = #{company_id}
+        order by access_name
+    </select>
+
+    <select id="FindAllAccessName" resultType="string">
+        select DISTINCT access_name
+        from access
+    </select>
+
+    <update id="permissionDelete">
+        update permission
+        <set>
+            is_deleted = "1",
+            modified_time = #{modified_time},
+            modified_by = #{modified_by}
+        </set>
+        where
+        permission_name = #{permission_name} order by access_name
+    </update>
+
+    <select id="permissionFind" resultType="string">
+        select DISTINCT permission_name
+        from permission
+        where permission_name = #{permission_name} and company_id = #{company_id} and is_deleted = "0"
+    </select>
+
+    <select id="findAllAccessName" resultType="string">
+        select DISTINCT access_name from access order by access_name
+    </select>
+    <insert id="permissionUpdate">
+        insert into permission (permission_name, access_name, status, is_deleted, created_time, created_by,
+        modified_time, modified_by,company_id)
+        values
+        (#{permission_name},#{access_name},#{status},#{is_deleted},#{modified_time},#{modified_by},#{modified_time},#{modified_by},#{company_id})
+    </insert>
+
+    <delete id="permissionAllDelete">
+        delete from permission
+        where permission_name = #{name} and company_id = #{company_id}
+    </delete>
+
+    <select id="getDefaultPermission" resultType="com.example.mes.system.entity.Permission">
+        select * from permission
+        where company_id is null
+    </select>
+</mapper>

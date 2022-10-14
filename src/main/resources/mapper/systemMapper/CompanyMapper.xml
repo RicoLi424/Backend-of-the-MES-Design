@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.system.mapper.CompanyMapper">
+
+    <select id="queryCompanyList" resultType="com.example.mes.system.entity.Company">
+        select SQL_CALC_FOUND_ROWS * from company
+        where
+        (company_name like '%${companySelectVo.filter_company_name}%' or #{companySelectVo.filter_company_name} = "")
+        and (is_deleted != "1")
+        order by ${companySelectVo.sort} ${companySelectVo.sortMethod}
+        limit #{numStart}, #{numEnd}
+    </select>
+    <select id="getLastCount" resultType="integer">
+        select FOUND_ROWS()
+    </select>
+
+    <update id="companyDelete" parameterType="com.example.mes.system.entity.Company">
+        update company
+        <set>
+            is_deleted = "1",
+            modified_time = #{company.modified_time},
+            modified_by = #{company.modified_by},
+            status = #{company.status}
+        </set>
+        where company_id = #{company.company_id}
+    </update>
+
+
+    <select id="companyFind" resultType="com.example.mes.system.entity.Company">
+        select * from company
+        where company_name = #{company_name} or company_id = #{company_id} or mail = #{mail};
+    </select>
+
+    <update id="companyUpdate" parameterType="com.example.mes.system.entity.Vo.CompanyUpdateVo">
+        update company
+        <set>
+            status = #{n.status},
+            modified_time = #{n.modified_time},
+            modified_by = #{n.modified_by}
+            <where>
+                company_id = #{n.company_id}
+            </where>
+        </set>
+    </update>
+
+    <insert id="companyInsert" parameterType="com.example.mes.system.entity.Vo.CompanyUpdateVo">
+        insert into
+        company (company_name, company_id,mail, status, is_deleted, created_time, created_by,
+        modified_time, modified_by)
+        values (#{n.company_name}, #{n.company_id},#{n.mail}, #{n.status}, #{n.is_deleted},
+        #{n.created_time}, #{n.created_by}, #{n.modified_time}, #{n.modified_by});
+    </insert>
+
+    <select id="mailFind" resultType="com.example.mes.system.entity.Company">
+        select * from company
+        where mail = #{mail}
+    </select>
+
+    <select id="companyNameFind" resultType="com.example.mes.system.entity.Company">
+        select * from company
+        where company_name = #{company_name}
+    </select>
+
+    <select id="companyIdFind" resultType="com.example.mes.system.entity.Company">
+        select * from company
+        where company_id = #{company_id}
+    </select>
+
+    <select id="getLastData" resultType="com.example.mes.system.entity.Company">
+        select * from company order by company_id DESC limit 1;
+    </select>
+
+</mapper>

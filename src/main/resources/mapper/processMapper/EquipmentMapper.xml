@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.process.Mapper.EquipmentMapper">
+
+    <select id="getEquipments" resultType="com.example.mes.process.Vo.EquipmentVo.QueryEquipmentVo">
+        SELECT e.equipment_id, e.name, e.purpose, e.comments ,e.status,e.company_id
+        FROM equipment e
+        WHERE is_deleted='0' and (company_id = #{company_id} or #{company_id} = 0)
+        ORDER BY equipment_id ASC
+            LIMIT ${pageVo.startOffset}, ${pageVo.pageSize}
+    </select>
+
+    <select id="getEquipmentByID" resultType="com.example.mes.process.Vo.EquipmentVo.QueryEquipmentVo">
+        SELECT e.equipment_id, e.name, e.purpose, e.comments ,e.status,e.company_id
+        FROM equipment e
+        WHERE equipment_id=#{equipment_id} AND is_deleted='0' and (company_id = #{company_id} or #{company_id} = 0)
+    </select>
+
+    <select id="getEquipmentByName" resultType="com.example.mes.process.Vo.EquipmentVo.QueryEquipmentVo" parameterType="java.lang.String">
+        SELECT m.equipment_id, m.name, m.purpose, m.comments,m.status,m.company_id
+        FROM equipment m
+        WHERE m.name=#{name} AND is_deleted='0'and (company_id = #{company_id} or #{company_id} = 0)
+    </select>
+
+    <select id="checkDuplicate" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM equipment e
+        WHERE e.name=#{name} AND e.purpose=#{purpose} AND is_deleted='0' and (company_id = #{company_id} or #{company_id} = 0)
+    </select>
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM equipment
+        WHERE is_deleted='0'
+    </select>
+    <select id="getIndex" resultType="java.lang.Integer">
+        SELECT max(equipment_id)
+        FROM equipment
+        WHERE is_deleted='0'
+    </select>
+
+    <insert id="addEquipment" parameterType="com.example.mes.process.Vo.EquipmentVo.InsertEquipmentVo">
+        INSERT INTO equipment(equipment_id, equipment.name, purpose, comments,
+                              equipment.status, is_deleted, created_time, created_by, modified_time, modified_by,company_id)
+            VALUE(#{insertEquipmentVo.equipment_id}, #{insertEquipmentVo.name}, #{insertEquipmentVo.purpose},
+            #{insertEquipmentVo.comments}, #{insertEquipmentVo.status}, '0',
+            #{insertEquipmentVo.created_time}, #{insertEquipmentVo.operator_id},
+            #{insertEquipmentVo.created_time}, #{insertEquipmentVo.operator_id},#{insertEquipmentVo.company_id})
+    </insert>
+
+    <update id="deleteEquipmentByID" parameterType="com.example.mes.process.Vo.EquipmentVo.DeleteEquipmentVo">
+        UPDATE equipment
+        SET is_deleted='1', modified_time=#{deleteEquipmentVo.modified_time}, modified_by=#{deleteEquipmentVo.operator_id}
+        WHERE equipment_id=#{deleteEquipmentVo.equipment_id} and (company_id = #{deleteEquipmentVo.company_id} or #{deleteEquipmentVo.company_id} = 0)
+    </update>
+
+    <update id="updateEquipmentByID" parameterType="com.example.mes.process.Vo.EquipmentVo.UpdateEquipmentVo">
+        UPDATE equipment
+        SET equipment.status=#{updateEquipmentVo.status}, comments=#{updateEquipmentVo.comments},
+            modified_time=#{updateEquipmentVo.modified_time}, modified_by=#{updateEquipmentVo.operator_id}
+        WHERE equipment_id=#{updateEquipmentVo.equipment_id}
+          and (company_id = #{updateEquipmentVo.company_id} or #{updateEquipmentVo.company_id} = 0)
+    </update>
+
+</mapper>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.system.mapper.RoleMapper">
+    <select id="queryRoleList" resultType="com.example.mes.system.entity.Role">
+        select SQL_CALC_FOUND_ROWS * from role
+        where
+        (role_name like '%${roleSelectVo.filter_role_name}%' or #{roleSelectVo.filter_role_name} = "")
+        and (company_id = #{roleSelectVo.user.company_id})
+        and (is_deleted = '0')
+        order by ${roleSelectVo.sort} ${roleSelectVo.sortMethod}
+        limit #{numStart}, #{numEnd}
+    </select>
+    <select id="getLastCount" resultType="integer">
+        select FOUND_ROWS()
+    </select>
+    <select id="queryAllPermissionName" resultType="String">
+        select DISTINCT permission_name from permission
+        where company_id = #{company_id}
+        order by permission_name
+    </select>
+
+    <select id="getRoles" resultType="java.lang.String">
+        select role_name from role where company_id =#{company_id}
+    </select>
+
+    <update id="roleDelete" parameterType="com.example.mes.system.entity.Role">
+        update role
+        <set>
+            is_deleted = "1",
+            modified_time = #{role.modified_time},
+            modified_by = #{role.modified_by},
+            status = #{role.status}
+        </set>
+        where role_name = #{role.role_name}
+    </update>
+
+    <select id="roleFind" resultType="com.example.mes.system.entity.Role">
+        select * from role
+        where role_name = #{role_name} and company_id = #{company_id} and is_deleted = "0"
+    </select>
+
+    <update id="roleUpdate" parameterType="com.example.mes.system.entity.Vo.RoleUpdateVo">
+        update role
+        <set>
+            <if test="n.role_id != null">role_id = #{n.role_id},</if>
+            <if test="n.role_describe != null">role_describe = #{n.role_describe},</if>
+            <if test="n.permission != null">permission = #{n.permission},</if>
+            <if test="n.status != null">status = #{n.status},</if>
+
+            modified_time = #{n.modified_time},
+            modified_by = #{n.modified_by}
+            <where>
+                role_name = #{n.role_name}
+            </where>
+        </set>
+    </update>
+
+    <insert id="roleInsert" parameterType="com.example.mes.system.entity.Vo.RoleUpdateVo">
+        insert into
+        role (role_name, role_id,department_name, role_describe, permission, status, is_deleted, created_time, created_by,
+        modified_time, modified_by,company_id)
+        values (#{n.role_name}, #{n.role_id},#{n.department_name} ,#{n.role_describe}, #{n.permission}, #{n.status}, #{n.is_deleted},
+        #{n.created_time}, #{n.created_by}, #{n.modified_time}, #{n.modified_by},#{n.company_id});
+    </insert>
+
+
+    <select id="getRolesByDepartment" resultType="java.lang.String">
+        select role_name from role where company_id =#{company_id} and department_name = #{department_name}
+    </select>
+
+
+    <update id="updateDepartmentName" parameterType="java.lang.String">
+        update role set department_name = #{department_name} where role_name = #{role_name} and company_id = #{company_id}
+    </update>
+
+    <select id="getDefaultRole" resultType="com.example.mes.system.entity.Role">
+        select * from role
+        where company_id is null
+    </select>
+</mapper>

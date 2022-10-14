@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同 -->
+<mapper namespace="com.example.mes.plan.dao.DemandFormMapper">
+
+	<sql id="COLUMNS">
+		id,
+		no,quantity,expected_date,
+		read_time, is_waiting, original_demand_form_id, product_id,
+
+		status,is_deleted,created_time,created_by,modified_time,modified_by,company_id
+	</sql>
+
+	<update id="updateDeleteSignal">
+		update plan_demand_form
+		set original_demand_form_id='0'
+		where id=#{id}
+	</update>
+	<update id="updateOriginalDemandForm">
+		update plan_demand_form
+		set original_demand_form_id=#{df.originalDemandForm.id}
+		where id=#{df.id}
+	</update>
+	<update id="updateReadTime">
+		update plan_demand_form
+		set read_time=now(),modified_time = now(),modified_by = #{df.modifiedBy}
+		where id=#{df.id}
+	</update>
+	<update id="updateWaiting">
+		update plan_demand_form
+		set is_waiting=#{df.waiting}
+		where id=#{df.id}
+	</update>
+	
+	<update id="updateStatus">
+		update plan_demand_form
+		set status = #{status}
+		where id = #{id}
+	</update>
+
+	<update id="updateDeleted">
+		update plan_demand_form
+		set is_deleted = #{deleted}
+		where id = #{id}
+	</update>
+
+	<insert id="insert">
+		insert into plan_demand_form(
+		<include refid="COLUMNS"></include>
+		)
+		values(#{id},#{no},#{quantity},#{expectedDate},
+		#{readTime},#{waiting},#{originalDemandForm.id},(
+		select distinct product_id  from product p where p.brand=#{product.brand} and p.color=#{product.color} and p.company=#{product.company}and p.type=#{product.style}  LIMIT 1  ),
+		#{status},#{deleted},now(),#{createdBy},#{modifiedTime},#{modifiedBy},#{company_id})
+
+	</insert>
+	<resultMap type="com.example.mes.plan.entity.DemandForm" id="df">
+		<result column="is_waiting" property="waiting" />
+		<result column="is_deleted" property="deleted"/>
+
+		<result column="expected_date" property="expectedDate"/>
+		<result column="read_time" property="readTime"/>
+		<result column="created_by" property="createdBy"/>
+		<result column="modified_time" property="modifiedTime"/>
+		<result column="modified_by" property="modifiedBy"/>
+		<result column="created_time" property="createdTime"/>
+
+		<association property="originalDemandForm"
+			select="selectById" column="{id=original_demand_form_id}"></association>
+<!--		<association property="product"-->
+<!--			select="innerQuery" column="{product_id=product_id}"></association>-->
+
+		<collection property="planSet" ofType="com.example.mes.plan.entity.Plan" 
+			select="com.example.mes.plan.dao.PlanMapper.getPlansByDemandFormId"
+			column="{id=id}"></collection>
+	</resultMap>
+<!--	-->
+<!--	<select id="innerQuery" resultType="com.example.mes.plan.entity.Product">-->
+<!--		select product_id id,brand, type style, color,company_id companyId,season-->
+<!--		from product-->
+<!--		where product_id=#{product_id}-->
+<!--	</select>-->
+
+	<select id="selectByOriginalDemandFormId" resultMap="df">
+		select <include refid="COLUMNS"></include>
+		from plan_demand_form 
+		where original_demand_form_id = #{df.id} 
+		order by created_time
+	</select>
+	
+	<select id="selectById" resultMap="df">
+		select <include refid="COLUMNS"></include>
+		from plan_demand_form 
+		where id = #{id}
+	</select>
+	
+	<sql id="criteria">
+		<if test="entityVo.no!=null and entityVo.no.trim()!=&quot;&quot;"> 
+			no like #{entityVo.no} 
+		</if>
+		<if test="entityVo.product!=null">
+			and product_id =any (select product_id from product where brand = #{entityVo.product.brand})
+		</if>
+		
+		<if test="entityVo.originalDemandForm==null or entityVo.originalDemandForm.id==null">
+			and original_demand_form_id is null
+		</if>
+		<if test="entityVo.originalDemandForm!=null and entityVo.originalDemandForm.id!=null">
+			and original_demand_form_id is not null and is_waiting = 1
+		</if>
+		
+		<if test="beginTimestamp!=null">
+			and created_time &gt; #{beginTimestamp}
+		</if>
+		<if test="endTimestamp!=null">
+			and created_time &lt; #{endTimestamp}
+		</if>
+	</sql>
+	
+	<select id="getCountByCriteria" resultType="java.lang.Integer">
+		select count(*) 
+		from plan_demand_form 
+		<where> 
+			<include refid="criteria"></include>
+		</where>
+	</select>
+	
+	<select id="getDemandFormByCriteria" resultMap="df">
+		select <include refid="COLUMNS"></include>
+		from plan_demand_form 
+		<where> 
+			<include refid="criteria"></include>
+		</where>
+		order by is_waiting desc ,expected_date asc
+		limit #{limit},#{pageSize}
+	</select>
+	
+	<resultMap type="com.example.mes.plan.entity.Line" id="line">
+		<id column="uuid" property="id"></id>
+		<result column="workshop_id" property="workshopId"/>
+		<result column="workshop_name" property="workshopName"/>
+
+		<association column="{id=workshop_id}" property="workshopName"
+			select="selectWorkshopNameById"></association>
+	</resultMap>
+	
+	<select id="selectWorkshopNameById" resultType="java.lang.String">
+		select name from workshop_workshop where id = #{id}
+	</select>
+	
+	<select id="getLinesByProduct" resultMap="line">
+		 select * from workshop_line
+		 where routing = #{product.id} 
+		 and is_deleted="0"
+		 and (
+		 	verify="normal"
+		 	or verify ="delete"
+		 )
+	</select>
+	
+	<select id="selectLineById" resultMap="line">
+    	select uuid, name, workshop_id
+    	from workshop_line
+    	where uuid=#{id}
+	</select>
+
+
+	<select id="getProductPlanId(product_id)" parameterType="java.lang.String" resultType="java.lang.String">
+	SELECT  p.no
+	FROM plan_plan p JOIN workshop_line w
+	WHERE w.routing = #{product_id} AND w.is_deleted = '0' AND w.uuid = p.production_line_id
+	</select>
+
+</mapper>

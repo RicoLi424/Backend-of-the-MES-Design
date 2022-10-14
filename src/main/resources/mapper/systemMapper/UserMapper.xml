@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.system.mapper.UserMapper">
+    <select id="findUserAll" resultType="com.example.mes.system.entity.User">
+        select * from user;
+    </select>
+
+    <select id="queryUserList" resultType="com.example.mes.system.entity.User">
+        select SQL_CALC_FOUND_ROWS * from user
+        <where>
+            (name like '%${userVo.filter_name}%' or #{userVo.filter_name} = '')
+            and (user_name like '%${userVo.filter_user_name}%' or #{userVo.filter_user_name} = '')
+            and (id like '%${userVo.filter_id}%' or #{userVo.filter_id} = 0)
+            and (company_id = #{userVo.user.company_id})
+            and (is_deleted = '0')
+
+            <if test="userVo.filter_role.size > 0">
+                and role in
+                <foreach item="item" index="index" collection="userVo.filter_role"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            <if test="userVo.filter_department.size > 0">
+                and department in
+                <foreach item="item" index="index" collection="userVo.filter_department"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+
+            order by ${userVo.sort} ${userVo.sortMethod}
+            limit #{numStart}, #{numEnd}
+        </where>
+    </select>
+
+    <select id="getLastCount" resultType="integer">
+        select count(*) from user where company_id = #{company_id}
+    </select>
+
+
+    <select id="queryAllRoleName" parameterType="com.example.mes.system.entity.Vo.UserVo" resultType="string">
+        select DISTINCT role_name from role where company_id = #{company_id}
+    </select>
+
+    <select id="queryAllDepartmentName" resultType="string">
+        select DISTINCT department_name from department where company_id = #{company_id}
+    </select>
+
+    <update id="deleteUsers">
+        update user
+        set is_deleted = 1,
+        modified_time = #{user.modified_time},
+        modified_by = #{user.modified_by},
+        status = #{user.status}
+        where id = #{user.id} and company_id = #{user.company_id}
+    </update>
+
+    <select id="findUserById" resultType="com.example.mes.system.entity.User">
+        select * from user
+        where id = #{id} and company_id = #{company_id} and is_deleted = "0"
+    </select>
+
+    <update id="userUpdate" parameterType="com.example.mes.system.entity.Vo.UserUpdateVo">
+        update user
+        <set>
+            <if test="n.name != null">name = #{n.name},</if>
+            <if test="n.age != null">age = #{n.age},</if>
+            <if test="n.sex != null">sex = #{n.sex},</if>
+            <if test="n.pwd != null">pwd = #{n.pwd},</if>
+            <if test="n.department != null">department = #{n.department},</if>
+            <if test="n.user_name != null">user_name = #{n.user_name},</if>
+            <if test="n.role != null">role = #{n.role},</if>
+            <if test="n.status != null">status = #{n.status},</if>
+            modified_time = #{n.modified_time},
+            modified_by = #{n.modified_by}
+        </set>
+        where id = #{n.id} and company_id = #{n.company_id}
+    </update>
+
+    <insert id="userAdd" parameterType="com.example.mes.system.entity.Vo.UserUpdateVo">
+        insert into
+        user(id, name, age, sex, pwd, department, user_name, role, created_time, status, is_deleted,
+        created_by, modified_time, modified_by,company_id)
+        values (#{n.id},#{n.name},#{n.age},#{n.sex},#{n.pwd},#{n.department},#{n.user_name},#{n.role},#{n.created_time},#{n.status},#{n.is_deleted},#{n.created_by},
+        #{n.modified_time}, #{n.modified_by},#{n.company_id})
+
+    </insert>
+
+    <select id="findUserDepartment" resultType="string">
+        select department from user
+        where id = #{id} and company_id = #{company_id}
+    </select>
+
+    <select id="findUserRole" resultType="string">
+        select role from user
+        where id = #{id} and company_id = #{company_id}
+    </select>
+
+    <insert id="createApply">
+        insert into apply (transfer_id, from_department, to_department,to_role, status, is_deleted, created_time, created_by,
+        handled_time, handled_by,company_id)
+        VALUES (#{apply.transfer_id},#{apply.from_department},#{apply.to_department},#{apply.to_role},
+        #{apply.status},#{apply.is_deleted},#{apply.created_time},#{apply.created_by},
+        #{apply.handled_time},#{apply.handled_by},#{apply.company_id})
+    </insert>
+
+    <select id="findApply" resultType="com.example.mes.system.entity.Apply">
+        select * from apply
+        where (transfer_id = #{id})
+        and (status = '待审核')
+        and (is_deleted = '0')
+        and (company_id = #{company_id})
+    </select>
+
+    <select id="getApply" resultType="integer">
+        select transfer_id from apply
+        where transfer_id = #{id}
+        and is_deleted = '0'
+        and status = '待审核'
+        and company_id = #{company_id}
+    </select>
+</mapper>

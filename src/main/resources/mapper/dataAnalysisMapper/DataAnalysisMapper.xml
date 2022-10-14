@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.dataAnalysis.Mapper.DataAnalysisMapper">
+
+    <select id="getProducedQuantity" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT IFNULL(
+            (SELECT sum(produced_quantity) as produced_quantity
+            FROM plan_process p1
+            WHERE plan_id IN(
+                SELECT id
+                FROM plan_plan
+                WHERE demand_form_id=#{demand_form_id})
+                AND step=(
+                    SELECT max(step)
+                    FROM plan_process p2
+                    WHERE p1.plan_id=p2.plan_id)
+            ),0
+        )
+
+    </select>
+    <select id="getPlanProductId" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT  p.id
+        FROM plan_plan p JOIN workshop_line w
+        WHERE w.routing = #{product_id}  AND w.uuid = p.production_line_id
+    </select>
+    <select id="getPlanProductno" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT  p.no
+        FROM plan_plan p JOIN workshop_line w
+        WHERE w.routing = #{product_id}  AND w.uuid = p.production_line_id
+    </select>
+    <select id="getDemandQuantity" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT quantity as demand_quantity
+        FROM plan_demand_form
+        WHERE id=#{demand_form_id}
+    </select>
+    <select id="getIDPairs" parameterType="java.lang.String" resultType="com.example.mes.dataAnalysis.Vo.IDPair">
+        SELECT p.id, p.product_id,is_waiting
+        FROM plan_demand_form p
+        WHERE p.no=#{no}
+    </select>
+
+    <select id="getDemandFormNosByDate" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT distinct p.no
+        FROM plan_demand_form p
+        WHERE convert(p.created_time,date)=#{date} AND (p.company_id=#{company_id} OR #{company_id}=0)
+    </select>
+
+    <select id="getProductNameByID" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT concat(brand,season,p.type) as name
+        FROM product p
+        WHERE product_id=#{product_id}
+    </select>
+    
+    <select id="getMaterialStock" parameterType="com.example.mes.process.Vo.PageVo.PageVo" resultType="com.example.mes.dataAnalysis.Vo.MaterialStock">
+        SELECT m.material_id,ifnull(a.count,0) AS count
+        FROM (SELECT goods_id material_id,sum(quantity) AS 'count'
+              FROM storage_goods s
+              WHERE s.is_deleted='0' AND types='material'  AND (verify='normal' OR verify='delete')
+              GROUP BY goods_id) AS a RIGHT JOIN material m ON a.material_id=m.material_id
+        WHERE m.is_deleted='0' and m.company_id = #{company_id}
+        ORDER BY m.material_id ASC
+        LIMIT ${pageVo.startOffset}, ${pageVo.pageSize}
+    </select>
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT count(material_id)
+        FROM material
+        WHERE is_deleted='0' and company_id = #{company_id}
+    </select>
+    <select id="getProcessPlanId" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT no
+        FROM plan_process
+        WHERE plan_id = #{plan_id}
+    </select>
+    <select id="getProcessPlanName" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT w.name
+        FROM plan_process p JOIN working_procedure w
+        WHERE p.plan_id = #{plan_id} AND p.step = w.procedure_id-1
+    </select>
+    <select id="getProcessDemandQuantity" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT  demand_quantity
+        FROM plan_process
+        WHERE no=#{process_id}
+    </select>
+    <select id="getProcessProducedQuantity" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT produced_quantity
+        FROM plan_process
+        WHERE no=#{process_id}
+    </select>
+    <select id="getMaterialStockByID" parameterType="java.lang.String" resultType="com.example.mes.dataAnalysis.Vo.MaterialStock">
+        SELECT goods_id as material_id,sum(quantity) as 'count'
+        FROM storage_goods
+        WHERE goods_id=#{material_id} AND is_deleted='0' AND types='material' AND (verify='normal' OR verify='delete')
+    </select>
+    <select id="getDemandPlanId" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT no
+        FROM plan_plan
+        WHERE demand_form_id = #{demand_form_id} AND is_deleted = '0'
+    </select>
+    <select id="getMaterialStockChangeByID" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT quantity
+        FROM storage_goods
+        WHERE goods_id=#{material_id} AND is_deleted='0' AND types='material' AND (verify='normal' OR verify='delete')
+    </select>
+
+    <select id="getMaterialIDByInfo" parameterType="java.lang.String" resultType="java.lang.String">
+        SELECT material_id
+        FROM material m
+        WHERE m.name=#{name} AND m.size=#{size} AND is_deleted='0'
+    </select>
+
+    <select id="getMaterialInfoByID" parameterType="java.lang.String" resultType="com.example.mes.dataAnalysis.Vo.MaterialStock">
+        SELECT m.name,m.size
+        FROM material m
+        WHERE material_id=#{material_id} and company_id = #{company_id}
+    </select>
+
+    <select id="getMaterialStockChanges" parameterType="java.lang.String" resultType="com.example.mes.dataAnalysis.Vo.MaterialStockChange">
+        SELECT stock,d.date
+        FROM data_material_stock d
+        WHERE material_id=#{material_id} AND now()>d.date
+        ORDER BY d.date desc
+        LIMIT 0,6
+    </select>
+    <insert id="addMaterialStockChanges" parameterType="com.example.mes.dataAnalysis.Vo.MaterialStockChange">
+        INSERT INTO data_material_stock
+        VALUE(#{materialStockChange.material_id},#{materialStockChange.stock},#{materialStockChange.date})
+    </insert>
+
+    <select id="getMaterialIDs" resultType="java.lang.String">
+        SELECT material_id
+        FROM material
+        WHERE is_deleted='0'
+    </select>
+    <select id="getPlanProducedQuantity" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT min(produced_quantity)
+        FROM plan_process
+        WHERE plan_id=#{plan_id}
+    </select>
+    <select id="getPlanDemandQuantity" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT demand_quantity
+        FROM plan_process
+        WHERE plan_id=#{plan_id}
+    </select>
+</mapper>

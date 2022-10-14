@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.WorkshopStorage.mapper.StationMapper">
+
+    <select id="getByLine"  resultType="com.example.mes.WorkshopStorage.vo.newStationVo">
+        select workshop_station.id,working_procedure.name,workshop_station.equip_id,workshop_station.stationOrder,workshop_station.user from workshop_station,working_procedure where  workshop_station.id = working_procedure.procedure_id and workshop_station.company_id = #{company_id} and workshop_station.workshop_id=#{workshop_id} and workshop_station.line_id=#{line_id} and workshop_station.is_deleted="0" and (workshop_station.verify="normal" or workshop_station.verify="delete") order by workshop_station.stationOrder asc
+    </select>
+    <select id="createInfo"  resultType="com.example.mes.WorkshopStorage.vo.StationVo">id
+        select id,equip_id,stationOrder,user from workshop_station where workshop_id=#{workshop_id} and line_id=#{line_id} and is_deleted="0" and verify="create"
+    </select>
+    <select id="checkByLine"  resultType="com.example.mes.WorkshopStorage.vo.StationVo">
+        select id,equip_id,stationOrder from workshop_station where workshop_id=#{workshop_id} and line_id=#{line_id} and is_deleted="0"
+    </select>
+    <select id="getApplyById" resultType="com.example.mes.WorkshopStorage.vo.StationVo">
+        select uuid,id,equip_id,stationOrder,verify,user,pre_id from workshop_station where workshop_id=#{workshop_id} and company_id = #{company_id} and line_id=#{line_id} and id=#{station_id} and is_deleted="0" and verify!="normal"
+    </select>
+    <select id="getById" resultType="com.example.mes.WorkshopStorage.vo.StationVo">
+        select uuid,id,equip_id,stationOrder,verify from workshop_station where workshop_id=#{workshop_id} and line_id=#{line_id} and id=#{station_id} and is_deleted="0" and (verify="normal" or verify="delete")
+    </select>
+    <select id="checkById" resultType="com.example.mes.WorkshopStorage.vo.StationVo">
+        select id,equip_id,stationOrder from workshop_station where workshop_id=#{workshop_id} and line_id=#{line_id} and id=#{station_id} and is_deleted="0"
+    </select>
+    <update id="updateByWorkshop">
+        update workshop_station set workshop_id=#{workshopId} where workshop_id=#{pre_id} and company_id = #{company_id} and is_deleted="0"
+    </update>
+    <update id="updateByLine">
+        update workshop_line set id=#{lineId} where workshop_id=#{workshopId} and company_id = #{company_id} and id=#{pre_id} and is_deleted="0"
+    </update>
+    <insert id="insert" parameterType="com.example.mes.WorkshopStorage.entity.Station">
+        insert into workshop_station values (#{uuid}, #{id}, #{workshop_id}, #{line_id}, #{user},#{equip_id},#{stationOrder},#{verify},#{pre_id},#{status},#{is_deleted},#{created_time},#{created_by},#{modified_time},#{modified_by},#{company_id})
+    </insert>
+    <update id="delete">
+        update workshop_station set is_deleted="1",verify="normal",modified_time=#{modified_time} where line_id=#{lineId} and workshop_id=#{workshopId} and id=#{stationId} and verify="normal" and is_deleted="0"
+    </update>
+    <select id="getUpdate" resultType="com.example.mes.WorkshopStorage.vo.StationVo">
+        select uuid from workshop_station where pre_id=#{stationId} and verify="insert" and is_deleted="0"
+    </select>
+    <select id="getStationNumByworkshopId" resultType="java.lang.Integer">
+        select count(*) from workshop_station where workshop_id=#{workshopId} and is_deleted="0" and (verify="normal" or verify="delete")  and company_id=#{company_id} GROUP BY workshop_id
+    </select>
+    <select id="getStationNumByLineId" resultType="java.lang.Integer">
+        select count(*) from workshop_station where workshop_id=#{workshopId} and company_id = #{company_id} and line_id=#{lineId} and is_deleted="0" and (verify="normal" or verify="delete")
+    </select>
+    <select id="getEquipNumByLineId" resultType="java.lang.Integer">
+        select count(*) from workshop_station where workshop_id=#{workshopId} and company_id = #{company_id} and line_id=#{lineId} and equip_id!="" and is_deleted="0" and (verify="normal" or verify="delete")
+    </select>
+    <select id="getApplyCount" resultType="java.lang.Integer">
+        select count(*) from workshop_station where is_deleted="0" and company_id = #{company_id} and verify!="normal" and verify!="create"
+    </select>
+    <select id="selectApplyAll"  resultType="com.example.mes.WorkshopStorage.vo.StationVo">
+        select id,workshop_id,line_id,created_time,created_by,verify,pre_id,modified_by,modified_time from workshop_station where is_deleted="0" and company_id = #{company_id} and verify!="normal" and verify!="create" order by id limit #{start},#{num}
+    </select>
+    <update id="setNormal">
+        update workshop_station set verify="normal",modified_time=#{modified_time},modified_by=#{user} where workshop_id=#{workshopId} and company_id = #{company_id} and line_id=#{lineId} and id=#{stationId} and verify!="normal" and is_deleted="0"
+    </update>
+    <update id="setDelete">
+        update workshop_station set is_deleted="1",modified_time=#{modified_time},modified_by=#{user} where workshop_id=#{workshopId} and company_id = #{company_id} and line_id=#{lineId} and id=#{stationId} and verify="normal" and is_deleted="0"
+    </update>
+    <update id="setNormalDelete">
+        update workshop_station set is_deleted="1",verify="normal",modified_time=#{modified_time},modified_by=#{user} where workshop_id=#{workshopId} and company_id = #{company_id} and line_id=#{lineId} and id=#{stationId} and verify!="normal" and is_deleted="0"
+    </update>
+    <update id="setNormalByWorkshop">
+        update workshop_station set verify="normal",modified_time=#{modified_time},modified_by=#{user} where workshop_id=#{workshopId} and verify="create" and is_deleted="0" and company_id = #{company_id}
+    </update>
+    <update id="setDeleteByWorkshop">
+        update workshop_station set is_deleted="1",verify="normal",modified_time=#{modified_time},modified_by=#{user} where workshop_id=#{workshopId} and company_id = #{company_id} and verify="create" and is_deleted="0"
+    </update>
+    <select id="checkByPre_id" resultType="com.example.mes.WorkshopStorage.vo.StationVo">
+        select uuid from workshop_station where pre_id =#{stationId} and line_id=#{lineId} and workshop_id=#{workshopId} and verify="insert" and is_deleted="0"
+    </select>
+
+    <select id="selectAllStation"  resultType="com.example.mes.WorkshopStorage.vo.StationVo">
+        select id,equip_id,stationOrder,user from workshop_station where workshop_id=#{workshopId} and line_id=#{lineId} and is_deleted="0" and verify="normal"
+    </select>
+
+    <update id="setNormalByWorkshop2">
+        update workshop_station set is_deleted="0",modified_time=#{modified_time},modified_by=#{user} where workshop_id=#{workshopId} and company_id = #{company_id} and verify="normal" and is_deleted="1"
+    </update>
+
+    <update id="setNormal2">
+        update workshop_station set is_deleted="0",modified_time=#{modified_time},modified_by=#{user} where workshop_id=#{workshopId} and company_id = #{company_id} and line_id=#{lineId} and verify="normal" and is_deleted="1"
+    </update>
+
+    <insert id="insertStations" parameterType="com.example.mes.WorkshopStorage.vo.StationVo">
+        insert into workshop_station values (#{uuid}, #{id}, #{workshop_id}, #{line_id}, #{user},#{equip_id},#{stationOrder},#{verify},#{pre_id},#{status},#{is_deleted},#{created_time},#{created_by},#{modified_time},#{modified_by},#{company_id})
+    </insert>
+</mapper>

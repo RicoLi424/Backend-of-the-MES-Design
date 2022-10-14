@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.mes.quality.mapper.QualityListMapper">
+
+
+    <select id="selectAll" resultType="com.example.mes.quality.bean.QualityListBean">
+        SELECT * FROM quality_list
+    </select>
+
+    <select id="selectListByStatus" resultType="com.example.mes.quality.bean.QualityListBean">
+        SELECT * FROM quality_list WHERE status = #{status}
+    </select>
+
+    <select id="selectListByLine" resultType="com.example.mes.quality.bean.QualityListBean">
+        SELECT * FROM quality_list WHERE line_id = #{line_id}
+    </select>
+
+    <select id="selectListByWorkShop" resultType="com.example.mes.quality.bean.QualityListBean">
+        SELECT * FROM quality_list WHERE workshop_id = #{workshop_id}
+    </select>
+
+    <select id="selectListNum" resultType="java.lang.Integer">
+        SELECT num FROM quality_list WHERE line_id = #{line_id}
+    </select>
+
+    <select id="queryQualityList" resultType="com.example.mes.quality.bean.QualityListBean">
+        select SQL_CALC_FOUND_ROWS * from quality_list
+        where
+            (workshop_id like '%${qualityListVo.filter_workshopID}%' or #{qualityListVo.filter_workshopID} = '')
+            and (line_id like '%${qualityListVo.filter_lineID}%' or #{qualityListVo.filter_lineID} = '')
+            and (status like '%${qualityListVo.filter_status}%' or #{qualityListVo.filter_status} = '未选择')
+            and (company_id = #{qualityListVo.company_id})
+
+            limit #{numStart}, #{numEnd}
+
+    </select>
+
+    <update id="updateQualityListStatus">
+        update quality_list set status = '1' where list_id = #{list_id} and company_id = #{company_id}
+    </update>
+
+    <select id="queryQualityByListID" resultType="com.example.mes.quality.bean.QualityListBean">
+        select  * from quality_list where list_id = #{list_id} and company_id = #{company_id}
+    </select>
+
+    <select id="getLastCount" resultType="java.lang.Integer">
+        select COUNT(*) from quality_list where company_id = #{qualityListVo.company_id}
+    </select>
+
+    <select id="getAllWorkshop" resultType="java.lang.String">
+        select distinct workshop_id from quality_list where company_id = #{company_id}
+    </select>
+
+    <select id="getAllLine" resultType="java.lang.String">
+        select distinct line_id from quality_list where company_id = #{company_id}
+    </select>
+
+    <select id="getAllLinesByWorkshop" resultType="java.lang.String">
+        select distinct line_id from quality_list where workshop_id = #{workshop_id} and company_id = #{company_id}
+    </select>
+
+<!--    <select id="getPlanList2" resultType="com.example.mes.quality.bean.QualityListBean">-->
+<!--        SELECT plan_plan.id,workshop_id,workshop_line.id,name,expected_quantity FROM plan_plan,workshop_line where production_line_id = workshop_line.id and plan_plan.is_deleted = workshop_line.is_deleted and plan_plan.status = "1" and plan_plan.is_deleted = "0" and plan_plan.company_id = #{company_id}-->
+<!--    </select>-->
+
+<!--    <select id="getListId" resultType="String">-->
+<!--        SELECT line_id FROM quality_list where company_id = #{company_id}-->
+<!--    </select>-->
+
+<!--    <insert id="insertQuality">-->
+<!--        insert into quality_list values (#{list.list_id},#{list.workshop_id,#{list.line_id},#{list.name},#{list.num},#{list.status},#{company_id})-->
+<!--    </insert>-->
+
+</mapper>

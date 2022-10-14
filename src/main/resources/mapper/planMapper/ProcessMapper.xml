@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.plan.dao.ProcessMapper">
+	<sql id="COLUMNS">
+		id,
+		no,plan_id,step,material_arrive_time,
+		demand_quantity,produced_quantity,finish_time,
+	
+		status,is_deleted,created_time,created_by,modified_time,modified_by
+	</sql>
+    <insert id="insert">
+    	insert into plan_process (<include refid="COLUMNS"></include>) 
+    	values (#{id},#{no},#{plan.id},#{step},#{materialArriveTime},
+    	#{demandQuantity},0,#{finishTime},
+    	#{status},#{deleted},now(),#{createdBy},#{modifiedTime},#{modifiedBy})
+    </insert>
+    
+    <update id="updateMaterialArriveTime">
+    	update plan_process
+    	set material_arrive_time = now()
+    	where id = #{id}
+    </update>
+    
+    <update id="updateProducedQuantity">
+    	update plan_process
+    	set produced_quantity = #{producedQuantity}
+    	where id = #{id}
+    </update>
+    
+    <update id="updateFinishTime">
+    	update plan_process
+    	set finish_time = now()
+    	where id = #{id}
+    </update>
+    
+    <resultMap type="com.example.mes.plan.entity.Process" id="process">
+    
+    	<result column="is_deleted" property="deleted"/>
+		<result column="material_arrive_time" property="materialArriveTime"/>
+		<result column="demand_quantity" property="demandQuantity"/>
+		<result column="produced_quantity" property="producedQuantity"/>
+		<result column="finish_time" property="finishTime"/>
+
+		<result column="created_by" property="createdBy"/>
+		<result column="modified_time" property="modifiedTime"/>
+		<result column="modified_by" property="modifiedBy"/>
+		<result column="created_time" property="createdTime"/>
+    	
+    	<association property="plan" select="com.example.mes.plan.dao.PlanMapper.selectById"
+    		column="{id=plan_id}"></association>
+    </resultMap>
+    
+    <select id="selectById" resultMap="process">
+    	select <include refid="COLUMNS"></include>
+    	from plan_process
+    	where id = #{id}
+    </select>
+    
+    <resultMap type="com.example.mes.plan.entity.Process" id="simple">
+		<result column="is_deleted" property="deleted"/>
+		<result column="material_arrive_time" property="materialArriveTime"/>
+		<result column="demand_quantity" property="demandQuantity"/>
+		<result column="produced_quantity" property="producedQuantity"/>
+		<result column="finish_time" property="finishTime"/>
+
+		<result column="created_by" property="createdBy"/>
+		<result column="modified_time" property="modifiedTime"/>
+		<result column="modified_by" property="modifiedBy"/>
+		<result column="created_time" property="createdTime"/>
+    </resultMap>
+    
+    <select id="selectByPlanId" resultMap="simple">
+    	select <include refid="COLUMNS"></include>
+    	from plan_process
+    	where plan_id = #{planId}
+    	order by step asc
+    </select>
+</mapper>

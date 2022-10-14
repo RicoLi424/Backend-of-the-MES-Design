@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.process.Mapper.RoutingMapper">
+
+<!--    根据工艺路线id，获得工艺路线信息-->
+    <select id="getRoutingByID" resultType="com.example.mes.process.Vo.RoutingVo.QueryRoutingVo">
+        SELECT routing_id, comments, r.status, cost
+        FROM routing r
+        WHERE routing_id=#{routing_id}
+    </select>
+
+<!--    根据工艺路线id，获得该工艺路线的详细信息-->
+    <select id="getRoutingInfosByID" resultType="com.example.mes.process.Vo.RoutingVo.QueryRoutingProcedureVo">
+        SELECT p.name, p.comments, p.procedure_id
+        FROM routing_procedure r,working_procedure p
+        WHERE routing_id=#{routing_id} AND r.procedure_id=p.procedure_id
+        ORDER BY r.order asc;
+    </select>
+
+<!--    根据工艺路线id计算耗费-->
+    <select id="getCostByID" resultType="java.lang.Double">
+        SELECT sum(p.cost)
+        FROM working_procedure p
+        WHERE p.procedure_id IN (SELECT procedure_id FROM routing_procedure  WHERE routing_id=#{routing_id})
+    </select>
+<!--    逻辑删除工艺路线-->
+    <update id="deleteRoutingByID" parameterType="com.example.mes.process.Vo.RoutingVo.DeleteRoutingVo">
+        UPDATE routing
+        SET is_deleted='1', modified_time=#{deleteRoutingVo.modified_time}, modified_by=#{deleteRoutingVo.operator_id}
+        WHERE routing_id=#{deleteRoutingVo.routing_id}
+    </update>
+
+<!--    插入工艺路线概要信息-->
+    <insert id="addRouting" parameterType="com.example.mes.process.Vo.RoutingVo.InsertRoutingVo">
+        INSERT INTO routing(routing_id, comments, routing.status, is_deleted,
+                            created_time, created_by, modified_time, modified_by)
+        VALUE(#{insertRoutingVo.routing_id}, #{insertRoutingVo.comments}, #{insertRoutingVo.status},
+            '0',#{insertRoutingVo.created_time},#{insertRoutingVo.operator_id},
+            #{insertRoutingVo.created_time},#{insertRoutingVo.operator_id})
+    </insert>
+
+<!--    插入工艺路线具体信息-->
+    <insert id="addRoutingInfos" parameterType="java.util.ArrayList">
+        INSERT INTO routing_procedure
+        VALUES
+        <foreach collection="list" index="index" separator="," item="item">
+            (#{item.routing_id}, #{item.procedure_id}, #{item.order})
+        </foreach>
+    </insert>
+
+<!--    更新工艺路线信息，可以更新status跟comments-->
+    <update id="updateRoutingByID" parameterType="com.example.mes.process.Vo.RoutingVo.UpdateRoutingVo">
+        UPDATE routing
+        SET routing.status=#{updateRoutingVo.status}, comments=#{updateRoutingVo.comments},
+            modified_time=#{updateRoutingVo.modified_time},modified_by=#{updateRoutingVo.operator_id}
+        WHERE routing_id=#{updateRoutingVo.routing_id}
+    </update>
+<!--    删除联系表中的工艺路线与工序的记录，用于更新-->
+    <delete id="deleteRoutingProcedureByID">
+        DELETE FROM routing_procedure
+        WHERE routing_id=#{routing_id}
+    </delete>
+
+
+</mapper>

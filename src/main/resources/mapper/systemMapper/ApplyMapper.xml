@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.system.mapper.ApplyMapper">
+    <select id="queryApplyList" resultType="com.example.mes.system.entity.Apply">
+        select SQL_CALC_FOUND_ROWS *
+        from apply
+        <where>
+            (created_by like '%${applySelectVo.filter_created_name}%' or
+            #{applySelectVo.filter_created_name} = '')
+            <if test="applySelectVo.status.size > 0">
+                and status in
+                <foreach item="item" index="index" collection="applySelectVo.status"
+                         open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            and (transfer_id like '%${applySelectVo.filter_transfer_id}%' or #{applySelectVo.filter_transfer_id} = 0)
+            and (company_id = #{company_id})
+        </where>
+        order by ${applySelectVo.sort} ${applySelectVo.sortMethod}
+        limit #{numStart}, #{numEnd}
+    </select>
+    <select id="getLastCount" resultType="integer">
+        select count(*) from apply where company_id = #{company_id}
+    </select>
+
+    <select id="getStatusList" resultType="com.example.mes.system.entity.Vo.ApplyStatusVo">
+        select status, count(*) as count
+        from apply
+        where company_id = #{company_id}
+        group by status
+    </select>
+
+    <select id="getStatus" resultType="integer">
+        select count(status)
+        from apply
+        where status = #{status} and company_id = #{company_id}
+    </select>
+
+    <update id="applyAddress">
+        update apply
+        set handled_by = #{handled_id},
+        status = #{status},
+        handled_time = #{currentTime}
+        where log_id = #{n.apply_id}
+    </update>
+    <select id="getUserId" resultType="integer">
+        select transfer_id
+        from apply
+        where log_id = #{log_id}
+    </select>
+    <select id="getDepartment" resultType="string">
+        select to_department
+        from apply
+        where log_id = #{apply_id}
+        and status = '待审核'
+        and is_deleted = '0'
+    </select>
+    <select id="getRole" resultType="string">
+        select to_role
+        from apply
+        where log_id = #{apply_id}
+        and status = '待审核'
+        and is_deleted = '0'
+    </select>
+    <update id="setUserDepartment">
+        update user
+        set department = #{department},
+        modified_time = #{currentTime},
+        modified_by = #{handled_by}
+        where id = #{transfer_id}
+    </update>
+
+    <update id="setUserRole">
+        update user
+        set role = #{role},
+        modified_time = #{currentTime},
+        modified_by = #{handled_by}
+        where id = #{transfer_id}
+    </update>
+
+    <update id="applyRefuse">
+        update apply
+        set status = #{status},
+        handled_time = #{currentTime},
+        handled_by = #{handled_id}
+        where log_id = #{log_id}
+    </update>
+
+    <select id="getTransferId" resultType="integer">
+        select transfer_id from apply
+        where log_id = #{log_id}
+    </select>
+</mapper>

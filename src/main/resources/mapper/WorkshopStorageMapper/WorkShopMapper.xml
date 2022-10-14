@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.WorkshopStorage.mapper.WorkshopMapper">
+
+
+    <select id="getById" resultType="com.example.mes.WorkshopStorage.vo.WorkshopVo">
+        select id,name,factory_name,verify,created_time,modified_time from workshop_workshop where id =#{workshopId} and is_deleted="0" and (verify="normal" or verify="delete") and company_id=#{company_id}
+    </select>
+    <select id="selectAll"  resultType="com.example.mes.WorkshopStorage.vo.WorkshopVo">
+        select id,name,factory_name,created_time,modified_time from workshop_workshop where is_deleted="0" and (verify="normal" or verify="delete") order by id limit #{start},#{num}
+    </select>
+    <select id="all_workshop"  resultType="com.example.mes.WorkshopStorage.vo.WorkshopVo">
+        select id,name,factory_name,created_time,modified_time from workshop_workshop where (company_id = #{company_id} or #{company_id}=0) and is_deleted="0" and (verify="normal" or verify="delete") order by id
+    </select>
+    <select id="selectApplyAll"  resultType="com.example.mes.WorkshopStorage.vo.WorkshopVo">
+        select id,name,factory_name,created_time,modified_time,created_by,modified_by,verify,pre_id from workshop_workshop where company_id = #{company_id} and is_deleted="0" and verify!="normal" order by id limit #{start},#{num}
+    </select>
+    <select id="getByName" resultType="com.example.mes.WorkshopStorage.vo.WorkshopVo">
+        select id,name,factory_name,verify,created_time,modified_time from workshop_workshop where name =#{workshopName} and is_deleted="0" and (verify="normal" or verify="delete")  and company_id=#{company_id}
+    </select>
+    <select id="getApplyById" resultType="com.example.mes.WorkshopStorage.vo.WorkshopVo">
+        select uuid,id,name,factory_name,verify,pre_id,created_time,created_by from workshop_workshop where id =#{workshopId} and is_deleted="0" and verify!="normal" and company_id=#{company_id}
+    </select>
+    <select id="checkById" resultType="com.example.mes.WorkshopStorage.vo.WorkshopVo">
+        select uuid from workshop_workshop where id =#{workshopId} and is_deleted="0" and company_id = #{company_id}
+    </select>
+    <select id="checkByPre_id" resultType="com.example.mes.WorkshopStorage.vo.WorkshopVo">
+        select uuid from workshop_workshop where pre_id =#{workshopId} and verify="insert" and is_deleted="0"
+    </select>
+    <update id="deleteWorkshop">
+        update workshop_workshop set verify="delete",modified_time=#{modified_time} where id=#{workshopId} and verify="normal" and is_deleted="0"
+    </update>
+    <update id="setNormal">
+        update workshop_workshop set verify="normal",modified_time=#{modified_time},modified_by=#{user} where id=#{workshopId} and verify!="normal" and is_deleted="0" and company_id = #{company_id}
+    </update>
+    <update id="setNormalDelete">
+        update workshop_workshop set verify="normal",is_deleted="1",modified_time=#{modified_time},modified_by=#{user} where id=#{workshopId} and verify!="normal" and is_deleted="0" and company_id = #{company_id}
+    </update>
+    <update id="setDelete">
+        update workshop_workshop set is_deleted="1",modified_time=#{modified_time},modified_by=#{user} where id=#{workshopId} and verify="normal" and is_deleted="0" and company_id = #{company_id}
+    </update>
+    <!--删除用户信息-->
+    <!--    记得加上company_id！！！！！-->
+    <insert id="insert" parameterType="com.example.mes.WorkshopStorage.entity.Workshop">
+        insert into workshop_workshop values (#{uuid}, #{id}, #{name}, #{factory_name}, #{verify},#{pre_uuid},#{status},#{is_deleted},#{created_time},#{created_by},#{modified_time},#{modified_by},#{company_id})
+    </insert>
+    <delete id="deleteById">
+        delete from workshop_line where workshop_uuid=#{workshop_id} and uuid=#{line_id}
+    </delete>
+    <select id="getCount" resultType="java.lang.Integer">
+        select count(*) from workshop_workshop where is_deleted="0" and (verify="normal" or verify="delete") and company_id = #{company_id}
+    </select>
+    <select id="getApplyCount" resultType="java.lang.Integer">
+        select count(*) from workshop_workshop where is_deleted="0" and verify!="normal" and company_id = #{company_id}
+    </select>
+    <select id="createInfo" resultType="com.example.mes.WorkshopStorage.vo.WorkshopVo">
+        select id,name,factory_name from workshop_workshop where id=#{workshopId} and verify="create" and is_deleted="0"
+    </select>
+
+    <select id="getWorkshopById" resultType="com.example.mes.WorkshopStorage.vo.newWorkshopVo">
+        select id,name,factory_name,verify,created_time,modified_time from workshop_workshop where id =#{workshopId} and is_deleted="0" and (verify="normal" or verify="delete")
+    </select>
+
+    <select id="getWorkshopInfo"  resultType="com.example.mes.WorkshopStorage.vo.newWorkshopVo">
+        select id,name,factory_name from workshop_workshop where id=#{workshopId} and is_deleted="0" and (verify="normal" or verify="delete") order by id limit #{start},#{num}
+    </select>
+
+</mapper>

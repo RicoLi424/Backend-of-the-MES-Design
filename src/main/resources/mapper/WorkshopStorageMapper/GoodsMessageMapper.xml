@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.WorkshopStorage.mapper.GoodsMessageMapper">
+    <select id="getById" resultType="com.example.mes.WorkshopStorage.vo.GoodsMessageVo">
+        select * from storage_message where (company_id = #{company_id} or #{company_id} = 0) and storage_id=#{storage_id} and shelf_id=#{shelf_id} and location=#{location} and is_deleted="0" and ior="insert"
+    </select>
+    <select id="getByShelf" resultType="com.example.mes.WorkshopStorage.vo.GoodsMessageVo">
+        select * from storage_message where (company_id = #{company_id} or #{company_id} = 0) and storage_id=#{storage_id} and shelf_id=#{shelf_id} and is_deleted="0" and ior="insert"
+    </select>
+    <update id="delete">
+        update storage_message set ior="remove",modified_time=#{modified_time} where (company_id = #{company_id} or #{company_id} = 0) and uuid=#{uuid} and ior="insert"
+    </update>
+    <insert id="insert" parameterType="com.example.mes.WorkshopStorage.vo.GoodsMessageVo">
+        insert into storage_message values(#{uuid},#{id},#{storage_id},#{shelf_id},#{location},#{types},#{ior},#{status},#{is_deleted},#{created_time},#{created_by},#{modified_time},#{modified_by},#{company_id})
+    </insert>
+    <select id="getOrderByGoods" resultType="com.example.mes.WorkshopStorage.vo.GoodsMessageVo">
+        select count(*) quantity, id,storage_id, shelf_id, location, created_time from storage_message where (company_id = #{company_id} or #{company_id} = 0) and ior="insert" and types=#{types} and id=#{id} group by created_time order by created_time
+    </select>
+    <update id="removeByTime">
+        update storage_message set ior="remove",modified_time=#{modified_time},modified_by=#{user} where (company_id = #{company_id} or #{company_id} = 0) and id=#{id} and created_time=#{created_time}
+    </update>
+    <select id="getByTime" resultType="com.example.mes.WorkshopStorage.vo.GoodsMessageVo">
+        select uuid from storage_message where (company_id = #{company_id} or #{company_id} = 0) and created_time=#{created_time};
+    </select>
+</mapper>

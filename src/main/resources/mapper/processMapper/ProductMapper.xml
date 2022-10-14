@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.process.Mapper.ProductMapper">
+
+<!--    查询所有的产品概述-->
+    <select id="getProducts" resultType="com.example.mes.process.Vo.ProductVo.QueryProductVo" parameterType="com.example.mes.process.Vo.PageVo.PageVo">
+        SELECT p.product_id, p.type, p.brand, p.season, p.color, p.comments, p.status,customer_id,company
+        FROM product p
+        WHERE is_deleted='0'
+        ORDER BY brand,season
+        LIMIT ${pageVo.startOffset}, ${pageVo.pageSize}
+    </select>
+
+    <!-- 本公司   查询所有的产品概述-->
+    <select id="getProductsByCompany" resultType="com.example.mes.process.Vo.ProductVo.QueryProductVo" parameterType="com.example.mes.process.Vo.PageVo.PageVo">
+        SELECT p.product_id, p.type, p.brand, p.season, p.color, p.comments, p.status,customer_id,company
+        FROM product p
+        WHERE is_deleted='0' and p.company_id=#{company_id}
+        ORDER BY brand,season
+            LIMIT ${pageVo.startOffset}, ${pageVo.pageSize}
+    </select>
+
+    <!-- 本公司   查询所有的产品概述-->
+    <select id="getProductsByCompanyAndCompany" resultType="com.example.mes.process.Vo.ProductVo.QueryProductVo" parameterType="com.example.mes.process.Vo.PageVo.PageVo">
+        SELECT p.product_id, p.type, p.brand, p.season, p.color, p.comments, p.status,customer_id,company
+        FROM product p
+        WHERE is_deleted=0 and p.company_id=#{company_id} and p.company=#{company}
+        ORDER BY brand,season
+            LIMIT ${pageVo.startOffset}, ${pageVo.pageSize}
+    </select>
+
+
+
+
+    <!-- 本公司   查询所有的产品概述-->
+    <select id="getProductsByCompanyAndType" resultType="com.example.mes.process.Vo.ProductVo.QueryProductVo" parameterType="com.example.mes.process.Vo.PageVo.PageVo">
+        SELECT p.product_id, p.type, p.brand, p.season, p.color, p.comments, p.status,customer_id,company
+        FROM product p
+        WHERE is_deleted='0' and p.company_id=#{company_id} and  p.type=#{type}
+        ORDER BY brand,season
+            LIMIT ${pageVo.startOffset}, ${pageVo.pageSize}
+    </select>
+<!--    查询记录条数-->
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM product
+        WHERE is_deleted='0'
+    </select>
+    <select id="checkDuplicate" resultType="java.lang.Integer" parameterType="java.lang.String">
+        SELECT count(*)
+        FROM product p
+        WHERE p.name=#{name} AND p.brand=#{brand} AND p.style=#{style} AND p.color=#{color} AND is_deleted='0'
+    </select>
+<!--    根据id查询产品概述-->
+    <select id="getProductByID" resultType="com.example.mes.process.Vo.ProductVo.QueryProductVo">
+        SELECT p.product_id, p.type, p.brand, p.season, p.color, p.comments, p.status,customer_id,company
+        FROM product p
+        WHERE product_id = #{product_id}
+    </select>
+
+
+    <!--    增加一个产品的概述信息，is_deleted默认为0-->
+    <insert id="addProduct" parameterType="com.example.mes.process.Vo.ProductVo.InsertProductVo">
+        INSERT INTO product(product_id, product.status, is_deleted, created_time, created_by, modified_time,
+                            modified_by, product.type, brand, season, color,customer_id,company,comments,company_id)
+        VALUE(#{insertProductVo.product_id}, #{insertProductVo.status}, '0', #{insertProductVo.created_time},
+            #{insertProductVo.operator_id}, #{insertProductVo.created_time}, #{insertProductVo.operator_id},
+            #{insertProductVo.type}, #{insertProductVo.brand}, #{insertProductVo.season},#{insertProductVo.color},
+            #{insertProductVo.customer_id},#{insertProductVo.company},#{insertProductVo.comments},#{insertProductVo.company_id})
+    </insert>
+
+<!--    逻辑删除一个产品-->
+    <update id="deleteProductByID" parameterType="com.example.mes.process.Vo.ProductVo.DeleteProductVo">
+        UPDATE product
+        SET is_deleted='1', modified_by=#{deleteProductVo.operator_id}, modified_time=#{deleteProductVo.modified_time}
+        WHERE product_id=#{deleteProductVo.product_id}
+    </update>
+
+<!--    修改一个产品，可修改status与comments-->
+    <update id="updateProductByID" parameterType="com.example.mes.process.Vo.ProductVo.UpdateProductVo">
+        UPDATE product
+        SET product.status=#{updateProductVo.status}, comments=#{updateProductVo.comments},
+            modified_time=#{updateProductVo.modified_time}, modified_by=#{updateProductVo.operator_id}
+        WHERE product_id=#{updateProductVo.product_id}
+    </update>
+
+</mapper>

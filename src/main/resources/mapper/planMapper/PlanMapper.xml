@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.plan.dao.PlanMapper">
+    <sql id="COLUMNS">
+    	id,
+    	no,demand_form_id,expected_quantity,distribute_time,production_line_id,
+    	
+    	status,is_deleted,created_time,created_by,modified_time,modified_by,company_id
+    </sql>
+    
+    
+    <update id="updateDistributeTime">
+		update plan_plan
+		set distribute_time=now(),status='1'
+		where id=#{id}    
+	</update>
+    
+    <update id="deleteById">
+    	update plan_plan 
+    	set is_deleted='1'
+    	where id = #{id}
+    </update>
+    
+    <insert id="insert">
+    	insert into plan_plan (<include refid="COLUMNS"></include>)
+    	values (#{id},#{no},#{demandForm.id},#{expectedQuantity},
+    	#{distributeTime},#{productionLine.id},#{status},#{deleted},
+    	now(),#{createdBy},#{modifiedTime},#{modifiedBy},#{company_id})
+    </insert>
+    <resultMap type="com.example.mes.plan.entity.Plan" id="plan">
+    	<result column="is_deleted" property="deleted"/>
+		<result column="distribute_time" property="distributeTime"/>
+		<result column="expected_quantity" property="expectedQuantity"/>
+
+		<result column="created_by" property="createdBy"/>
+		<result column="modified_time" property="modifiedTime"/>
+		<result column="modified_by" property="modifiedBy"/>
+		<result column="created_time" property="createdTime"/>
+    	
+    	<association property="productionLine" column="{id=production_line_id}"
+    		select="com.example.mes.plan.dao.DemandFormMapper.selectLineById"></association>
+    	
+    	<association property="demandForm" 
+	    	select="com.example.mes.plan.dao.DemandFormMapper.selectById"
+	    	column="demand_form_id"></association>
+    	
+    	<collection property="processesList"
+	    	 select="com.example.mes.plan.dao.ProcessMapper.selectByPlanId"
+	    	 column="{planId=id}"></collection>
+	   	
+    	<collection property="maSet" column="{id=id}"
+    		select="com.example.mes.plan.dao.MaterialApplicationMapper.selectByPlanId"></collection>
+    </resultMap>
+    
+    
+    <select id="selectById" resultMap="plan">
+    	select <include refid="COLUMNS"></include> 
+    	from plan_plan
+    	where id = #{id}
+    </select>
+    <select id="getPlansByProductionLineId" resultMap="plan">
+    	select <include refid="COLUMNS"></include> 
+    	from plan_plan
+    	where production_line_id = #{productionLineId}
+    	and is_deleted='0'
+    </select>
+    
+    <sql id="criteria">
+		<if test="entityVo.no!=null and entityVo.no.trim()!=&quot;&quot;"> 
+			no=#{entityVo.no} 
+		</if>
+		<if test="entityVo.demandForm!=null">
+			and demand_form_id = any(select id from plan_demand_form where no = #{entityVo.demandForm.no})
+		</if>
+		<if test="entityVo.productionLine!=null">
+			and production_line_id = #{entityVo.productionLine.id}
+		</if>
+		<if test="beginTimestamp!=null">
+			and created_time &gt; #{beginTimestamp}
+		</if>
+		<if test="endTimestamp!=null">
+			and created_time &lt; #{endTimestamp}
+		</if>
+		<if test="company_id!=null">
+			and company_id = #{company_id}
+		</if>
+		<if test="true">
+			and distribute_time is not null
+		</if>
+	</sql>
+	
+	<select id="getCountByCriteria" resultType="java.lang.Integer">
+		select count(*) 
+		from plan_plan 
+		<where> 
+			<include refid="criteria"></include>
+		</where>
+	</select>
+	
+	<select id="getPlanByCriteria" resultMap="plan">
+		select <include refid="COLUMNS"></include>
+		from plan_plan 
+		<where> 
+			<include refid="criteria"></include>
+		</where>
+		limit #{limit},#{pageSize}
+	</select>
+    
+    <resultMap type="com.example.mes.plan.entity.Plan" id="simple">
+		<result column="is_deleted" property="deleted"/>
+		<result column="distribute_time" property="distributeTime"/>
+		<result column="expected_quantity" property="expectedQuantity"/>
+
+		<result column="created_by" property="createdBy"/>
+		<result column="modified_time" property="modifiedTime"/>
+		<result column="modified_by" property="modifiedBy"/>
+		<result column="created_time" property="createdTime"/>
+
+    	<association property="productionLine" column="{id=production_line_id}"
+    		select="com.example.mes.plan.dao.DemandFormMapper.selectLineById"></association>
+    </resultMap>
+    
+    <select id="getPlansByDemandFormId" resultMap="simple">
+    	select <include refid="COLUMNS"></include>
+    	from plan_plan
+    	where demand_form_id = #{id} and is_deleted = '0'
+    </select>
+</mapper>

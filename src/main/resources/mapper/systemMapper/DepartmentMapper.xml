@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.system.mapper.DepartmentMapper">
+    <select id="queryDepartmentList" resultType="com.example.mes.system.entity.Department">
+        select SQL_CALC_FOUND_ROWS *
+        from department
+        where (department_name like '%${DepartmentSelectVo.filter_department_name}%' or
+        #{DepartmentSelectVo.filter_department_name} = '')
+        and (company_id = #{DepartmentSelectVo.user.company_id})
+        and (is_deleted = '0')
+        order by ${DepartmentSelectVo.sort} ${DepartmentSelectVo.sortMethod}
+        limit #{numStart}, #{numEnd}
+    </select>
+    <select id="getLastCount" resultType="integer">
+        select count(*) from department where company_id = #{company_id}
+    </select>
+    <update id="departmentDelete">
+        update department
+        <set>
+            is_deleted = "1",
+            modified_time = #{department.modified_time},
+            modified_by = #{department.modified_by},
+
+        </set>
+        where department_name = #{department.department_name} and company_id = #{department.company_id}
+    </update>
+    <select id="departmentFgetLastCountind" resultType="com.example.mes.system.entity.Department" parameterType="string">
+        select *
+        from department
+        where department_name = #{department_name};
+    </select>
+
+    <select id="newdepartmentFind" resultType="com.example.mes.system.entity.Department" parameterType="string">
+        select *
+        from department
+        where department_name = #{department_name} and company_id = #{company_id}
+    </select>
+
+    <update id="departmentUpdate">
+        update department
+        <set>
+            <if test="n.manager_name != null">manager_name = #{n.manager_name},</if>
+            <if test="n.manager_id != null">manager_id = #{n.manager_id},</if>
+            <if test="n.department_describe != null">department_describe = #{n.department_describe},</if>
+            <if test="n.status != null">status = #{n.status},</if>
+            modified_by = #{n.modified_by},
+            modified_time = #{n.modified_time}
+        </set>
+        where department_name = #{n.department_name}
+    </update>
+
+    <update id="newdepartmentUpdate">
+        update department
+        <set>
+            <if test="n.manager_name != null">manager_name = #{n.manager_name},</if>
+            <if test="n.manager_id != null">manager_id = #{n.manager_id},</if>
+            <if test="n.department_describe != null">department_describe = #{n.department_describe},</if>
+            <if test="n.status != null">status = #{n.status},</if>
+            modified_by = #{n.modified_by},
+            modified_time = #{n.modified_time}
+        </set>
+        where department_name = #{n.department_name}
+    </update>
+
+    <insert id="departmentInsert">
+        insert into department (department_name,company_id,  manager_name, manager_id, department_describe, status, is_deleted,
+        created_time, created_by, modified_time, modified_by,company_id)
+        values (#{n.department_name},#{n.company_id},#{n.manager_name}, #{n.manager_id},
+        #{n.department_describe},#{n.status},#{n.is_deleted},#{n.created_time},#{n.created_by},#{n.modified_time},#{n.modified_by},#{n.company_id})
+    </insert>
+
+    <insert id="newdepartmentInsert">
+        insert into department (department_name,company_id, manager_name, manager_id, department_describe, status, is_deleted,
+        created_time, created_by, modified_time, modified_by)
+        values (#{n.department_name},#{n.company_id}, #{n.manager_name}, #{n.manager_id},
+        #{n.department_describe},#{n.status},#{n.is_deleted},#{n.created_time},#{n.created_by},#{n.modified_time},#{n.modified_by})
+    </insert>
+
+    <select id="getDepartmentCount" resultType="com.example.mes.system.entity.Vo.DepartmentCountVo">
+        select department,count(*) as count from user
+        where company_id = #{company_id}
+        group by department
+    </select>
+
+    <select id="getDefaultDepartment" resultType="com.example.mes.system.entity.Department">
+        select * from department
+        where company_id is null
+    </select>
+</mapper>

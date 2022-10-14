@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.process.Mapper.TransactionMapper">
+    <!--        增加物料清单-->
+    <insert id="addProMaterialLists" parameterType="java.util.ArrayList">
+        INSERT INTO pro_material_list
+        VALUES
+        <foreach collection="list" index="index" separator="," item="item">
+            (#{item.product_id}, #{item.material_id}, #{item.count},#{item.company_id})
+        </foreach>
+    </insert>
+    <!--        删除物料跟产品的联系记录-->
+    <!--        修改物料清单：先删除该清单，再重新插入-->
+    <delete id="deleteProMaterialLists">
+        DELETE FROM pro_material_list
+        WHERE product_id=#{product_id}
+    </delete>
+    <!--    增加一个产品的概述信息，is_deleted默认为0-->
+    <insert id="addProduct" parameterType="com.example.mes.process.Vo.ProductVo.InsertProductVo">
+        INSERT INTO product(product_id, product.status, is_deleted, created_time, created_by, modified_time,
+                            modified_by, product.type, brand, season, color,customer_id,company,comments,company_id)
+        VALUE(#{insertProductVo.product_id}, #{insertProductVo.status}, '0', #{insertProductVo.created_time},
+            #{insertProductVo.operator_id}, #{insertProductVo.created_time}, #{insertProductVo.operator_id},
+            #{insertProductVo.type}, #{insertProductVo.brand}, #{insertProductVo.season},#{insertProductVo.color},
+            #{insertProductVo.customer_id},#{insertProductVo.company},#{insertProductVo.comments},#{insertProductVo.company_id})
+    </insert>
+
+    <!--    逻辑删除一个产品-->
+    <update id="deleteProductByID" parameterType="com.example.mes.process.Vo.ProductVo.DeleteProductVo">
+        UPDATE product
+        SET is_deleted='1', modified_by=#{deleteProductVo.operator_id}, modified_time=#{deleteProductVo.modified_time}
+        WHERE product_id=#{deleteProductVo.product_id}
+    </update>
+
+    <!--    修改一个产品，可修改status与comments-->
+    <update id="updateProductByID" parameterType="com.example.mes.process.Vo.ProductVo.UpdateProductVo">
+        UPDATE product
+        SET product.status=#{updateProductVo.status}, comments=#{updateProductVo.comments},
+            modified_time=#{updateProductVo.modified_time}, modified_by=#{updateProductVo.operator_id}
+        WHERE product_id=#{updateProductVo.product_id}
+    </update>
+    <!--    逻辑删除工艺路线-->
+    <update id="deleteRoutingByID" parameterType="com.example.mes.process.Vo.RoutingVo.DeleteRoutingVo">
+        UPDATE routing
+        SET is_deleted='1', modified_time=#{deleteRoutingVo.modified_time}, modified_by=#{deleteRoutingVo.operator_id}
+        WHERE routing_id=#{deleteRoutingVo.routing_id}
+    </update>
+
+    <!--    插入工艺路线概要信息-->
+    <insert id="addRouting" parameterType="com.example.mes.process.Vo.RoutingVo.InsertRoutingVo">
+        INSERT INTO routing(routing_id, comments, routing.status, is_deleted,
+                            created_time, created_by, modified_time, modified_by,company_id)
+            VALUE(#{insertRoutingVo.routing_id}, #{insertRoutingVo.comments}, #{insertRoutingVo.status},
+            '0',#{insertRoutingVo.created_time},#{insertRoutingVo.operator_id},
+            #{insertRoutingVo.created_time},#{insertRoutingVo.operator_id},#{insertRoutingVo.company_id})
+    </insert>
+
+    <!--    插入工艺路线具体信息-->
+    <insert id="addRoutingInfos" parameterType="java.util.ArrayList">
+        INSERT INTO routing_procedure
+        VALUES
+        <foreach collection="list" index="index" separator="," item="item">
+            (#{item.routing_id}, #{item.procedure_id}, #{item.order},#{item.company_id})
+        </foreach>
+    </insert>
+
+    <insert id="addRoutingInfosBycompany" parameterType="java.util.ArrayList">
+        INSERT INTO routing_procedure
+        VALUES
+        <foreach collection="list" index="index" separator="," item="item">
+            (#{item.routing_id}, #{item.procedure_id}, #{item.order},)
+        </foreach>
+    </insert>
+
+    <!--    更新工艺路线信息，可以更新status跟comments-->
+    <update id="updateRoutingByID" parameterType="com.example.mes.process.Vo.RoutingVo.UpdateRoutingVo">
+        UPDATE routing
+        SET routing.status=#{updateRoutingVo.status}, comments=#{updateRoutingVo.comments},
+            modified_time=#{updateRoutingVo.modified_time},modified_by=#{updateRoutingVo.operator_id}
+        WHERE routing_id=#{updateRoutingVo.routing_id}
+    </update>
+    <!--    删除联系表中的工艺路线与工序的记录，用于更新-->
+    <delete id="deleteRoutingProcedureByID">
+        DELETE FROM routing_procedure
+        WHERE routing_id=#{routing_id}
+    </delete>
+
+
+
+</mapper>

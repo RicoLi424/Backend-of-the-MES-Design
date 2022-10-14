@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.example.mes.quality.mapper.QualityMapper">
+
+    <resultMap id="QualityBean" type="com.example.mes.quality.bean.QualityBean" >
+        <result column="list_id" property="list_id"/>
+        <result column="check_order" property="checkOrder"/>
+        <result column="check_time" property="checkTime"/>
+        <result column="order_num" property="orderNum"/>
+        <result column="check_num" property="checkNum"/>
+        <result column="defect_num" property="defectNum"/>
+        <result column="defect_type" property="defectType"/>
+        <result column="defect_code" property="defectCode"/>
+        <result column="defect_ratio" property="defectRatio"/>
+        <result column="workshop" property="workshop"/>
+        <result column="production_line" property="productionLine"/>
+        <result column="procedure" property="procedure"/>
+        <result column="staff" property="staff"/>
+        <result column="status" property="status"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="modified_time" property="modifiedTime"/>
+        <result column="modified_by" property="modifiedBy"/>
+        <result column="company_id" property="company_id"/>
+    </resultMap>
+
+    <insert id="addQualityResults" parameterType="com.example.mes.quality.bean.QualityBean">
+        INSERT INTO quality_management(list_id,check_time,order_num,check_num,defect_num,defect_type,defect_code,
+        defect_ratio,workshop,production_line,`procedure`,staff,status,is_deleted,created_time,created_by,
+        modified_time,modified_by)
+        VALUES
+        (#{list_id},#{checkTime},#{orderNum},#{checkNum},#{defectNum},#{defectType},#{defectCode},#{defectRatio},
+        #{workshop},#{productionLine},#{procedure},#{staff},#{status},#{isDeleted},
+        #{createdTime},#{createdBy},#{modifiedTime},#{modifiedBy})
+    </insert>
+
+    <select id="getQualityResults" parameterType="String" resultMap="QualityBean">
+        SELECT * FROM quality_management WHERE is_deleted = 0 and company_id = #{company_id} ORDER BY check_order DESC
+    </select>
+
+    <select id="queryResultByList" parameterType="String" resultMap="QualityBean">
+        SELECT * FROM quality_management WHERE is_deleted = 0 and list_id = #{list_id}
+    </select>
+
+    <select id="getQualityResultsByDate" parameterType="String" resultMap="QualityBean">
+        SELECT * FROM quality_management WHERE is_deleted = 0 AND check_time LIKE "%"#{list[0]}"%" AND
+            workshop = #{list[1]} AND production_line = #{list[2]} and company_id = #{list[3]}
+    </select>
+
+    <select id="getQualityResultsByWorkshop" parameterType="String" resultMap="QualityBean">
+        SELECT RIGHT(check_time,8) AS check_time,SUM(defect_ratio) / COUNT(*) AS defect_ratio FROM quality_management
+        where is_deleted = 0 AND workshop = #{list[0]} AND production_line = #{list[1]} and company_id = #{list[2]}
+        GROUP BY RIGHT(check_time,8);
+    </select>
+
+    <select id="getQualityResultsByDefectTypePart" parameterType="String" resultMap="QualityBean">
+        SELECT defect_type,COUNT(*) as defect_num FROM quality_management
+        where is_deleted = 0 AND check_time LIKE concat(#{list[0]},'%')  AND workshop = #{list[1]} AND production_line = #{list[2]} and company_id = #{list[3]}
+        GROUP BY defect_type;
+    </select>
+
+    <select id="getQualityResultsByDefectType" parameterType="String" resultMap="QualityBean">
+        SELECT defect_type,COUNT(*) as defect_num FROM quality_management
+        where is_deleted = 0 AND workshop = #{list[0]} AND production_line = #{list[1]} and company_id = #{list[2]}
+        GROUP BY defect_type;
+    </select>
+
+    <select id="getDefectCode"  resultType="java.lang.String">
+        select defect_code from defect_list
+        where defect_type in
+            <foreach item="item" index="index" collection="list"
+                     open="(" separator="," close=")">
+                #{item}
+            </foreach>
+            and company_id = #{company_id}
+
+    </select>
+</mapper>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mes.WorkshopStorage.mapper.StorageMapper">
+
+    <select id="getCount" resultType="java.lang.Integer">
+        select count(*) from storage_storage where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0"
+    </select>
+    <select id="selectAll"  resultType="com.example.mes.WorkshopStorage.vo.StorageVo">
+        select id,created_by,created_time from storage_storage where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" order by id limit #{start},#{num}
+    </select>
+    <select id="all_storage"  resultType="com.example.mes.WorkshopStorage.vo.StorageVo">
+        select id,created_by,created_time from storage_storage where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" order by id
+    </select>
+    <select id="search"  resultType="com.example.mes.WorkshopStorage.vo.StorageVo">
+        select id,created_by,created_time from storage_storage where (company_id = #{company_id} or #{company_id} = 0) and is_deleted="0" and id=#{storage_id}
+    </select>
+    <update id="delete">
+        update storage_storage set is_deleted="1",modified_by=#{user},modified_time=#{modified_time} where (company_id = #{company_id} or #{company_id} = 0) and id=#{storage_id} and is_deleted="0"
+    </update>
+    <insert id="create">
+        insert into storage_storage values (#{uuid},#{id},#{status},#{is_deleted},#{created_time},#{created_by},#{modified_time},#{modified_by},#{company_id})
+    </insert>
+</mapper>

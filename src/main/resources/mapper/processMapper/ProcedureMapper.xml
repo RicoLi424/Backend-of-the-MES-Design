@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace:改mapper.xml映射文件的唯一标识并且必须和数据处理层的接口的路径相同-->
+<mapper namespace="com.example.mes.process.Mapper.ProcedureMapper">
+<!--    查询所有工序信息-->
+    <select id="getProceduresInfo" resultType="com.example.mes.process.Vo.ProcedureVo.QueryProcedureVo" parameterType="com.example.mes.process.Vo.PageVo.PageVo">
+        SELECT p.procedure_id, p.name, p.cost, p.comments, p.status,p.company_id
+        FROM working_procedure p
+        WHERE is_deleted='0' and (company_id = #{company_id} or #{company_id} = 0)
+        ORDER BY procedure_id ASC
+        LIMIT ${pageVo.startOffset}, ${pageVo.pageSize}
+    </select>
+<!--    查询记录条数-->
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM working_procedure
+        WHERE is_deleted='0' and (company_id = #{company_id} or #{company_id} = 0)
+    </select>
+
+    <select id="getIndex" resultType="java.lang.Integer">
+        SELECT max(procedure_id)
+        FROM working_procedure
+        WHERE is_deleted=0 and (company_id = #{company_id} or #{company_id} = 0)
+    </select>
+<!--    根据id获取工序信息-->
+    <select id="getProcedureInfoByID" resultType="com.example.mes.process.Vo.ProcedureVo.QueryProcedureVo">
+        SELECT p.procedure_id, p.name, p.cost, p.comments, p.status, p.company_id
+        FROM working_procedure p
+        WHERE p.procedure_id=#{procedure_id} AND is_deleted='0' and (company_id = #{company_id} or #{company_id} = 0)
+    </select>
+
+<!--    增加一道工序，is_deleted默认为0-->
+    <insert id="addProcedure" parameterType="com.example.mes.process.Vo.ProcedureVo.InsertProcedureVo">
+        INSERT INTO working_procedure(procedure_id,working_procedure.name, cost, comments, working_procedure.status,
+                                      is_deleted, created_time, created_by, modified_time, modified_by,company_id)
+        VALUE(#{insertProcedureVo.procedure_id},#{insertProcedureVo.name},#{insertProcedureVo.cost}, #{insertProcedureVo.comments},
+            #{insertProcedureVo.status}, '0',#{insertProcedureVo.created_time}, #{insertProcedureVo.operator_id},
+            #{insertProcedureVo.created_time}, #{insertProcedureVo.operator_id},#{insertProcedureVo.company_id})
+    </insert>
+
+<!--    根据updateProcedureVo的procedure_id更新工序，将会同步更新modified_time与modified_by-->
+    <update id="updateProcedureByID" parameterType="com.example.mes.process.Vo.ProcedureVo.UpdateProcedureVo">
+        UPDATE working_procedure
+        SET comments=#{updateProcedureVo.comments}, working_procedure.status=#{updateProcedureVo.status}, cost=#{updateProcedureVo.cost},
+            modified_time=#{updateProcedureVo.modified_time}, modified_by=#{updateProcedureVo.operator_id},company_id = #{updateProcedureVo.company_id}
+        WHERE procedure_id=#{updateProcedureVo.procedure_id} and (company_id = #{updateProcedureVo.company_id} or #{updateProcedureVo.company_id} = 0)
+    </update>
+
+<!--    逻辑删除一个工序-->
+<!--    根据deleteProcedureVo的procedure_id，将is_deleted设置为1，逻辑删除，将会同步更新modified_time与modified_by-->
+    <update id="deleteProcedureByID" parameterType="com.example.mes.process.Vo.ProcedureVo.DeleteProcedureVo">
+        UPDATE working_procedure
+        SET is_deleted='1', modified_time=#{deleteProcedureVo.modified_time}, modified_by=#{deleteProcedureVo.operator_id}
+        WHERE procedure_id=#{deleteProcedureVo.procedure_id} and (company_id = #{deleteProcedureVo.company_id} or #{deleteProcedureVo.company_id} = 0)
+    </update>
+
+    <select id="getProceduresInfoByName" resultType="com.example.mes.process.Vo.ProcedureVo.QueryProcedureVo">
+        SELECT p.procedure_id, p.name, p.cost, p.comments, p.status, p.company_id
+        FROM working_procedure p
+        WHERE p.name=#{name} AND is_deleted='0' and (company_id = #{company_id} or #{company_id} = 0)
+    </select>
+
+</mapper>

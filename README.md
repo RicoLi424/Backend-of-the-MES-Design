@@ -12,3 +12,12 @@ Is used to realize the distribution of customer orders to production orders.
 It realizes the maintenance of the bill of materials, routing, and procedures involved in production. The main functions include bill of materials management, routing management, and procedure management.
 * **_Product Quality Management_**  
 It is used to realize the quality control of semi-finished products or finished products produced by workshop production lines in different processes. Quality inspectors randomly or regularly inspect semi-finished products or finished products produced by different production lines and processes, and enter the inspection results into the system.
+* **_Basic System Management_**  
+It realizes the management of users, roles, departments and permissions.
+* **_Template Management_**  
+It realize the management of attribute templates of entities in the system, such as materials, equipment, and processes. Different material attributes have different names and quantities. In order to adapt to various materials, equipment, etc., the system can dynamically adapt according to the actual attributes, and the system can accommodate different entities by establishing templates.
+* **_Data Analysis Report_**  
+It realizes the display of production plan progress, production plan preview, material inventory, and bad statistical information. 
+   * **Production planning progress module:** Display the actual and planned completion quantities of products in different customer orders in the form of a bar chart.
+   * **Material Inventory:** Display the current material inventory in the form of a table.
+   * **Defective statistics:** Display the statistics of defective products from the beginning of the generation of planned orders to the current moment in the form of a graph.
